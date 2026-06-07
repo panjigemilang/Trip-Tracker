@@ -1,13 +1,34 @@
 <script lang="ts">
     import { page } from '$app/stores';
+    import { goto } from '$app/navigation';
     import { onMount } from 'svelte';
     import { ArrowLeft, CalendarDays, MapPin, Plus } from 'lucide-svelte';
     import { Button } from '$lib/components/ui/button';
     import StatusBadge from '$lib/components/atoms/StatusBadge.svelte';
+    import { journeyStore } from '$lib/stores/journey.svelte';
+    import { toast } from 'svelte-sonner';
+    import ImportWizard from '$lib/components/organisms/ImportWizard.svelte';
+    import { Upload } from 'lucide-svelte';
 
     let tripId = $state($page.params.id);
     let trip = $state<any>(null);
     let isLoading = $state(true);
+    let isStarting = $state(false);
+    let showImport = $state(false);
+
+    async function handleStartJourney() {
+        if (!trip) return;
+        isStarting = true;
+        try {
+            const journey = await journeyStore.startJourney(trip.id);
+            toast.success('Journey started!');
+            goto(`/journey/${journey.id}`);
+        } catch (e: any) {
+            toast.error(e.message || 'Failed to start journey');
+        } finally {
+            isStarting = false;
+        }
+    }
 
     onMount(async () => {
         // Mock data fetch
@@ -67,8 +88,10 @@
                 
                 <div class="flex gap-2">
                     <Button variant="outline" href={`/trips/${trip.id}/edit`}>Edit Trip</Button>
-                    {#if trip.status === 'planned'}
-                        <Button>Start Journey</Button>
+                    {#if trip.status === 'planned' || trip.status === 'active'}
+                        <Button disabled={isStarting} onclick={handleStartJourney}>
+                            {isStarting ? 'Starting...' : (trip.status === 'active' ? 'Resume Journey' : 'Start Journey')}
+                        </Button>
                     {/if}
                 </div>
             </div>
@@ -79,11 +102,23 @@
         <div class="mt-12">
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-2xl font-semibold tracking-tight">Itinerary</h2>
-                <Button variant="outline" size="sm">
-                    <Plus class="w-4 h-4 mr-2" />
-                    Add Activity
-                </Button>
+                <div class="flex gap-2">
+                    <Button variant="outline" size="sm" onclick={() => showImport = !showImport}>
+                        <Upload class="w-4 h-4 mr-2" />
+                        Import
+                    </Button>
+                    <Button variant="outline" size="sm">
+                        <Plus class="w-4 h-4 mr-2" />
+                        Add Activity
+                    </Button>
+                </div>
             </div>
+
+            {#if showImport}
+                <div class="mb-8">
+                    <ImportWizard tripId={trip.id} onSuccess={() => { showImport = false; window.location.reload(); }} />
+                </div>
+            {/if}
 
             {#if trip.activities && trip.activities.length > 0}
                 <div class="space-y-4">

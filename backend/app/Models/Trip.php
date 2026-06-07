@@ -51,4 +51,9 @@ class Trip extends Model
     {
         return $this->hasMany(Activity::class)->orderBy('date')->orderBy('time')->orderBy('sort_order');
     }
+
+    public function journey()
+    {
+        return $this->hasOne(Journey::class);
+    }
 }
