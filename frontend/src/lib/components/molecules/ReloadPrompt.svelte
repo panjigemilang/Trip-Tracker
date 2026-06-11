@@ -3,13 +3,14 @@
   import { Button } from '$lib/components/ui/button';
 
   const { needRefresh, updateServiceWorker, offlineReady } = useRegisterSW({
-    onRegistered(r) {
+    onRegistered(r: ServiceWorkerRegistration | undefined) {
       console.log(`SW Registered: ${r}`);
     },
-    onRegisterError(error) {
+    onRegisterError(error: unknown) {
       console.log('SW registration error', error);
     }
   });
+
 
   const close = () => {
     offlineReady.set(false);

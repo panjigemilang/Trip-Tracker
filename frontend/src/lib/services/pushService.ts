@@ -1,5 +1,10 @@
 import { apiClient } from './api/client';
 
+interface PushSubscriptionResponse {
+  success: boolean;
+  message?: string;
+}
+
 export const pushService = {
   urlBase64ToUint8Array(base64String: string) {
     const padding = '='.repeat((4 - base64String.length % 4) % 4);
@@ -27,7 +32,7 @@ export const pushService = {
       applicationServerKey: this.urlBase64ToUint8Array(vapidPublicKey)
     });
 
-    await apiClient.post('/push/subscribe', subscription);
+    await apiClient.post<PushSubscriptionResponse>('/push/subscribe', subscription);
     return subscription;
   },
 
@@ -36,7 +41,7 @@ export const pushService = {
     const subscription = await registration.pushManager.getSubscription();
     if (subscription) {
       await subscription.unsubscribe();
-      await apiClient.post('/push/unsubscribe', { endpoint: subscription.endpoint });
+      await apiClient.post<PushSubscriptionResponse>('/push/unsubscribe', { endpoint: subscription.endpoint });
     }
   },
 

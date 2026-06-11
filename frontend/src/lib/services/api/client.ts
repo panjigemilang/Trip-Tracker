@@ -4,11 +4,17 @@ export class ApiClient {
 	async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
 		const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-		const headers: HeadersInit = {
+		const headers: Record<string, string> = {
 			'Content-Type': 'application/json',
 			'Accept': 'application/json',
-			...options.headers,
 		};
+
+		if (options.headers) {
+			const extraHeaders = options.headers as Record<string, string>;
+			for (const key in extraHeaders) {
+				headers[key] = extraHeaders[key];
+			}
+		}
 
 		if (token) {
 			headers['Authorization'] = `Bearer ${token}`;
@@ -35,6 +41,41 @@ export class ApiClient {
 
 		return data;
 	}
+
+	async get<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+		return this.request<T>(endpoint, { ...options, method: 'GET' });
+	}
+
+	async post<T>(endpoint: string, body?: unknown, options: RequestInit = {}): Promise<T> {
+		return this.request<T>(endpoint, {
+			...options,
+			method: 'POST',
+			body: body ? JSON.stringify(body) : undefined,
+		});
+	}
+
+	async put<T>(endpoint: string, body?: unknown, options: RequestInit = {}): Promise<T> {
+		return this.request<T>(endpoint, {
+			...options,
+			method: 'PUT',
+			body: body ? JSON.stringify(body) : undefined,
+		});
+	}
+
+	async patch<T>(endpoint: string, body?: unknown, options: RequestInit = {}): Promise<T> {
+		return this.request<T>(endpoint, {
+			...options,
+			method: 'PATCH',
+			body: body ? JSON.stringify(body) : undefined,
+		});
+	}
+
+	async delete<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+		return this.request<T>(endpoint, { ...options, method: 'DELETE' });
+	}
 }
 
 export const api = new ApiClient();
+export const apiClient = api;
+
+

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { FileUp, File, AlertCircle } from 'lucide-svelte';
+  import { FileUp, File as FileIcon, AlertCircle } from 'lucide-svelte';
   import { Button } from '$lib/components/ui/button';
 
   let { onUpload, isUploading = false } = $props();
@@ -32,12 +32,16 @@
 </script>
 
 <div class="space-y-4">
+  <!-- svelte-ignore a11y_click_events_have_key_events -->
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div 
+    role="button"
+    tabindex="0"
     class="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl p-8 text-center hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer"
     ondrop={handleDrop}
     ondragover={handleDragOver}
     onclick={() => fileInput.click()}
+    onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); } }}
   >
     <div class="flex justify-center mb-4 text-slate-400">
       <FileUp class="w-10 h-10" />
@@ -45,7 +49,7 @@
     
     {#if selectedFile}
       <div class="flex items-center justify-center gap-2 text-slate-900 dark:text-slate-100 font-medium">
-        <File class="w-5 h-5 text-blue-500" />
+        <FileIcon class="w-5 h-5 text-blue-500" />
         {selectedFile.name}
       </div>
       <p class="text-sm text-slate-500 mt-1">{(selectedFile.size / 1024).toFixed(1)} KB</p>
@@ -65,10 +69,11 @@
 
   <div class="flex justify-end gap-2">
     {#if selectedFile}
-      <Button variant="outline" onclick={(e) => { e.stopPropagation(); selectedFile = null; }}>Cancel</Button>
-      <Button onclick={(e) => { e.stopPropagation(); submitFile(); }} disabled={isUploading}>
+      <Button variant="outline" onclick={(e: MouseEvent) => { e.stopPropagation(); selectedFile = null; }}>Cancel</Button>
+      <Button onclick={(e: MouseEvent) => { e.stopPropagation(); submitFile(); }} disabled={isUploading}>
         {isUploading ? 'Uploading...' : 'Import Activities'}
       </Button>
     {/if}
   </div>
 </div>
+

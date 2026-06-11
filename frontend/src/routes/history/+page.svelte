@@ -2,14 +2,18 @@
   import { onMount } from 'svelte';
   import { apiClient } from '$lib/services/api/client';
   import { History, Calendar, MapPin, ChevronRight, CheckCircle2, XCircle } from 'lucide-svelte';
-  import StatusBadge from '$lib/components/atoms/StatusBadge.svelte';
+  import type { Trip } from '$lib/types/trip';
 
-  let histories = $state<any[]>([]);
+  interface HistoryResponse {
+    data: Trip[];
+  }
+
+  let histories = $state<Trip[]>([]);
   let loading = $state(true);
 
   onMount(async () => {
     try {
-      const res = await apiClient.get('/history');
+      const res = await apiClient.get<HistoryResponse>('/history');
       histories = res.data;
     } catch (e) {
       console.error(e);

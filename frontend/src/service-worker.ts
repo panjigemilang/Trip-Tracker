@@ -7,6 +7,11 @@ declare let self: ServiceWorkerGlobalScope;
 
 import { build, files, version } from '$service-worker';
 
+// Satisfy Vite PWA injectManifest requirement
+// @ts-ignore
+const precacheList = self.__WB_MANIFEST;
+
+
 const CACHE = `cache-${version}`;
 const ASSETS = [
 	...build, // the app itself

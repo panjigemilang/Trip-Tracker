@@ -1,14 +1,23 @@
 <script lang="ts">
   import ImportDropzone from '$lib/components/molecules/ImportDropzone.svelte';
   import { Button } from '$lib/components/ui/button';
-  import { Download, AlertCircle, CheckCircle2 } from 'lucide-svelte';
-  import { apiClient } from '$lib/services/api/client';
+  import { Download, AlertCircle } from 'lucide-svelte';
   import { toast } from 'svelte-sonner';
+
+  interface ValidationError {
+    row: string;
+    messages: string[];
+  }
+
+  interface ImportResponse {
+    message?: string;
+    errors?: Record<string, string[]>;
+  }
 
   let { tripId, onSuccess }: { tripId: string, onSuccess: () => void } = $props();
   
   let isUploading = $state(false);
-  let validationErrors = $state<any[]>([]);
+  let validationErrors = $state<ValidationError[]>([]);
 
   async function downloadTemplate() {
     // In a real app, maybe fetch Blob and trigger download
@@ -33,14 +42,14 @@
         body: formData
       });
 
-      const data = await res.json();
+      const data = (await res.json()) as ImportResponse;
 
       if (!res.ok) {
         if (res.status === 422 && data.errors) {
            // Format errors
            validationErrors = Object.entries(data.errors).map(([key, messages]) => ({
              row: key,
-             messages: messages as string[]
+             messages: messages
            }));
            toast.error('Import validation failed. Please check the file.');
         } else {
@@ -50,8 +59,9 @@
         toast.success('Activities imported successfully!');
         onSuccess();
       }
-    } catch (e: any) {
-      toast.error(e.message || 'An unexpected error occurred during import.');
+    } catch (e) {
+      const err = e as Error;
+      toast.error(err.message || 'An unexpected error occurred during import.');
     } finally {
       isUploading = false;
     }
