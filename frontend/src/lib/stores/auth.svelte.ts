@@ -45,6 +45,17 @@ export class AuthStore {
 		this.user = response.data;
 	}
 
+	async loginAsGuest(): Promise<void> {
+		const rand = Math.random().toString(36).substring(2, 10);
+		const guestCredentials = {
+			name: `Guest Agent ${rand}`,
+			email: `guest_${rand}@sector7.local`,
+			password: `guest_${rand}_pass`,
+			password_confirmation: `guest_${rand}_pass`
+		};
+		await this.register(guestCredentials);
+	}
+
 	async logout(): Promise<void> {
 		try {
 			await api.request('/auth/logout', { method: 'POST' });
