@@ -193,8 +193,9 @@
             class="
               aspect-square flex items-center justify-center text-[10px] font-semibold rounded transition-all cursor-pointer relative
               {day.disabled ? 'text-slate-800 cursor-not-allowed bg-transparent' : ''}
-              {!day.disabled && !isSelected && day.isCurrentMonth ? 'text-white hover:bg-secondary/20 hover:text-secondary border border-transparent hover:border-secondary/30' : ''}
-              {!day.disabled && !isSelected && !day.isCurrentMonth ? 'text-muted-foreground/45 hover:bg-secondary/20 hover:text-secondary border border-transparent' : ''}
+              {!day.disabled && !isSelected && !isToday && day.isCurrentMonth ? 'text-white hover:bg-secondary/20 hover:text-secondary border border-transparent hover:border-secondary/30' : ''}
+              {!day.disabled && !isSelected && !isToday && !day.isCurrentMonth ? 'text-muted-foreground/45 hover:bg-secondary/20 hover:text-secondary border border-transparent' : ''}
+              {!day.disabled && !isSelected && isToday ? 'text-secondary bg-secondary/10 border border-secondary/40 shadow-[0_0_8px_rgba(0,230,184,0.15)] hover:bg-secondary/25 hover:border-secondary/60' : ''}
               {isSelected ? 'bg-primary text-white font-bold border border-primary shadow-[0_0_10px_rgba(255,42,122,0.6)]' : ''}
             "
           >

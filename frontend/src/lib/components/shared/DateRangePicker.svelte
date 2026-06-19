@@ -211,8 +211,9 @@
               aspect-square flex items-center justify-center text-[10px] font-semibold rounded transition-all cursor-pointer relative
               {day.isCurrentMonth ? 'text-white' : 'text-muted-foreground/40'}
               {isHighlight ? 'bg-secondary/15 text-secondary border border-dashed border-secondary/35 shadow-[0_0_8px_rgba(0,230,184,0.1)] rounded-none' : ''}
+              {!isSelected && !isHighlight && isToday ? 'text-secondary bg-secondary/10 border border-secondary/40 shadow-[0_0_8px_rgba(0,230,184,0.15)] hover:bg-secondary/25 hover:border-secondary/60' : ''}
               {isSelected ? 'bg-primary text-white font-bold border border-primary shadow-[0_0_10px_rgba(255,42,122,0.6)] rounded z-10' : ''}
-              {!isSelected && !isHighlight ? 'hover:bg-secondary/20 hover:text-secondary border border-transparent hover:border-secondary/30' : ''}
+              {!isSelected && !isHighlight && !isToday ? 'hover:bg-secondary/20 hover:text-secondary border border-transparent hover:border-secondary/30' : ''}
             "
           >
             {day.date.getDate()}
