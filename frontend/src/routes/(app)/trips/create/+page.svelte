@@ -4,7 +4,7 @@
   import { Label } from '$lib/components/ui/label';
   import NeonText from '$lib/components/shared/NeonText.svelte';
   import ImageSlotUploader from '$lib/components/features/trips/ImageSlotUploader.svelte';
-  import DatePicker from '$lib/components/shared/DatePicker.svelte';
+  import DateRangePicker from '$lib/components/shared/DateRangePicker.svelte';
   import { ArrowLeft, AlertCircle } from 'lucide-svelte';
   import { api } from '$lib/services/api/client';
   import { goto } from '$app/navigation';
@@ -97,15 +97,9 @@
         <Input id="trip_title" placeholder="ENTER_MISSION_CODE..." class="bg-card border-border h-12" bind:value={tripTitle} required />
       </div>
 
-      <div class="grid grid-cols-2 gap-4">
-        <div class="space-y-2">
-          <Label for="start_date" class="text-[10px] uppercase tracking-widest text-secondary font-semibold">Start Date</Label>
-          <DatePicker bind:value={startDate} placeholder="Start Date" />
-        </div>
-        <div class="space-y-2">
-          <Label for="end_date" class="text-[10px] uppercase tracking-widest text-secondary font-semibold">End Date</Label>
-          <DatePicker bind:value={endDate} min={startDate} placeholder="End Date" />
-        </div>
+      <div class="space-y-2">
+        <Label for="date_range" class="text-[10px] uppercase tracking-widest text-secondary font-semibold">Expedition Duration</Label>
+        <DateRangePicker bind:startDate bind:endDate placeholder="SELECT EXPEDITION TIMELINE..." />
       </div>
 
       <div class="space-y-2">
