@@ -44,6 +44,8 @@
     return `${y}-${m}-${d}`;
   }
 
+  const todayStr = toISODateString(new Date());
+
   // Display date formatter (e.g. "Jun 20, 2026")
   let displayValue = $derived.by(() => {
     if (!value) return '';
@@ -181,13 +183,15 @@
       <!-- Days Grid -->
       <div class="grid grid-cols-7 gap-1">
         {#each gridDays as day}
-          {@const isSelected = value === toISODateString(day.date)}
+          {@const dateStr = toISODateString(day.date)}
+          {@const isSelected = value === dateStr}
+          {@const isToday = dateStr === todayStr}
           <button
             type="button"
             onclick={() => selectDate(day.date)}
             disabled={day.disabled}
             class="
-              aspect-square flex items-center justify-center text-[10px] font-semibold rounded transition-all cursor-pointer
+              aspect-square flex items-center justify-center text-[10px] font-semibold rounded transition-all cursor-pointer relative
               {day.disabled ? 'text-slate-800 cursor-not-allowed bg-transparent' : ''}
               {!day.disabled && !isSelected && day.isCurrentMonth ? 'text-white hover:bg-secondary/20 hover:text-secondary border border-transparent hover:border-secondary/30' : ''}
               {!day.disabled && !isSelected && !day.isCurrentMonth ? 'text-muted-foreground/45 hover:bg-secondary/20 hover:text-secondary border border-transparent' : ''}
@@ -195,6 +199,9 @@
             "
           >
             {day.date.getDate()}
+            {#if isToday && !day.disabled}
+              <span class="absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-secondary shadow-[0_0_8px_#00E6B8]"></span>
+            {/if}
           </button>
         {/each}
       </div>

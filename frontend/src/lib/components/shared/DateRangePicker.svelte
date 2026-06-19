@@ -39,6 +39,8 @@
     return `${y}-${m}-${d}`;
   }
 
+  const todayStr = toISODateString(new Date());
+
   function formatDateFriendly(dateStr: string) {
     if (!dateStr) return '';
     const date = new Date(dateStr);
@@ -194,6 +196,7 @@
           {@const isStart = startDate === dateStr}
           {@const isEnd = endDate === dateStr}
           {@const isSelected = isStart || isEnd}
+          {@const isToday = dateStr === todayStr}
           
           <!-- Determine range highlight states -->
           {@const isInRange = startDate && endDate && dateStr > startDate && dateStr < endDate}
@@ -213,6 +216,9 @@
             "
           >
             {day.date.getDate()}
+            {#if isToday}
+              <span class="absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-secondary shadow-[0_0_8px_#00E6B8]"></span>
+            {/if}
           </button>
         {/each}
       </div>
