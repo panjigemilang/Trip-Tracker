@@ -15,8 +15,17 @@ class StoreActivityRequest extends FormRequest
 
     public function rules(): array
     {
+        $trip = $this->route('trip');
+        $minDate = $trip && $trip->start_date ? $trip->start_date->format('Y-m-d') : null;
+        $maxDate = $trip && $trip->end_date ? $trip->end_date->format('Y-m-d') : null;
+
         return [
-            'date' => ['required', 'date'],
+            'date' => [
+                'required', 
+                'date',
+                $minDate ? 'after_or_equal:' . $minDate : '',
+                $maxDate ? 'before_or_equal:' . $maxDate : '',
+            ],
             'time' => ['required', 'date_format:H:i'],
             'title' => ['required', 'string', 'max:255'],
             'location' => ['nullable', 'string', 'max:500'],

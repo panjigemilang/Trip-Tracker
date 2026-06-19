@@ -18,6 +18,8 @@ class StoreTripRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
+            'start_date' => ['required', 'date'],
+            'end_date' => ['required', 'date', 'after_or_equal:start_date'],
             'activities' => ['sometimes', 'array'],
             'activities.*.date' => ['required_with:activities', 'date'],
             'activities.*.time' => ['required_with:activities', 'date_format:H:i'],

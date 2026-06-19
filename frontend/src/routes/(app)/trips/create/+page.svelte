@@ -4,25 +4,21 @@
   import { Label } from '$lib/components/ui/label';
   import NeonText from '$lib/components/shared/NeonText.svelte';
   import StatusBadge from '$lib/components/shared/StatusBadge.svelte';
-  import ImageSlotUploader from '$lib/components/features/trips/ImageSlotUploader.svelte';
-  import { Calendar, MapPin, Rocket, ArrowLeft, AlertCircle } from 'lucide-svelte';
+  import { Calendar, ArrowLeft, AlertCircle, Rocket } from 'lucide-svelte';
   import { api } from '$lib/services/api/client';
   import { goto } from '$app/navigation';
 
   let tripTitle = $state('');
-  let activityTitle = $state('');
-  let date = $state('');
-  let time = $state('');
-  let location = $state('');
-  let notes = $state('');
+  let tripDescription = $state('');
+  let startDate = $state('');
+  let endDate = $state('');
   let isSubmitting = $state(false);
   let error = $state('');
-  let uploadedImages = $state<{ base64: string, name: string }[]>([]);
 
   async function handleCreateTrip(e: Event) {
     e.preventDefault();
-    if (!tripTitle || !activityTitle || !date || !time) {
-      error = 'Missing parameters: Title, Activity, Date, and Time are required.';
+    if (!tripTitle || !startDate || !endDate) {
+      error = 'Missing parameters: Title, Start Date, and End Date are required.';
       return;
     }
     
@@ -30,25 +26,17 @@
     error = '';
     
     try {
-      // 1. Create Trip (with nested first Activity and its images)
-      await api.post<any>('/trips', {
+      const res = await api.post<any>('/trips', {
         title: tripTitle,
-        description: notes,
-        status: 'planned',
-        activities: [
-          {
-            title: activityTitle,
-            date: date,
-            time: time,
-            location: location || null,
-            notes: notes || null,
-            sort_order: 1,
-            images: uploadedImages
-          }
-        ]
+        description: tripDescription || null,
+        start_date: startDate,
+        end_date: endDate,
+        status: 'planned'
       });
       
-      goto('/trips');
+      const tripId = res.data.id;
+      // Direct deep link to trip details so they can add segments/activities immediately
+      goto(`/trips/${tripId}`);
     } catch (err: any) {
       console.error(err);
       error = err.message || 'Failed to initialize trip protocol.';
@@ -77,32 +65,20 @@
   </header>
 
   <form onsubmit={handleCreateTrip} class="grid grid-cols-1 md:grid-cols-[1fr_400px] gap-8 w-full">
-    <!-- Left Column: Visuals & Mobile Title -->
+    <!-- Left Column: Visual Banner -->
     <div class="flex flex-col gap-6 order-2 md:order-1">
-      <div class="hidden md:block">
-        <h2 class="text-xl font-bold tracking-widest text-secondary mb-2" style="text-shadow: 0 0 10px rgba(0,230,184,0.4);">MISSION_VISUALS</h2>
-        <p class="text-sm text-muted-foreground mb-6 max-w-md">Upload high-resolution reconnaissance imagery to establish visual parameters for the tracking sequence.</p>
-      </div>
-
-      <!-- Mobile ONLY Banner -->
-      <div class="md:hidden relative h-40 w-full rounded-xl overflow-hidden border border-primary/30 shadow-[0_0_15px_rgba(255,42,122,0.2)] mb-4">
-        <div class="absolute inset-0 bg-linear-to-t from-[#0B0C10] to-transparent z-10"></div>
-        <img src="https://images.unsplash.com/photo-1605806616949-1e87b487cb2a?q=80&w=600" alt="Cyberpunk City" class="h-full w-full object-cover" />
-        <div class="absolute bottom-4 left-4 z-20">
-          <StatusBadge status="active" class="mb-2 bg-transparent border-none text-secondary shadow-none px-0 tracking-widest font-bold" />
-          <h2 class="text-3xl font-bold font-heading">Create Trip</h2>
+      <div class="relative h-64 md:h-full min-h-64 rounded-xl overflow-hidden border border-primary/30 shadow-[0_0_15px_rgba(255,42,122,0.2)] bg-slate-950/40">
+        <div class="absolute inset-0 bg-linear-to-t from-[#0B0C10] via-[#0B0C10]/40 to-transparent z-10"></div>
+        <img src="https://images.unsplash.com/photo-1605806616949-1e87b487cb2a?q=80&w=800" alt="Cyberpunk City" class="h-full w-full object-cover opacity-70" />
+        <div class="absolute bottom-6 left-6 right-6 z-20">
+          <StatusBadge status="planned" class="mb-2 bg-transparent border-none text-secondary shadow-none px-0 tracking-widest font-bold" />
+          <h2 class="text-2xl font-bold font-heading text-white uppercase tracking-widest mb-1">Sector Navigation</h2>
+          <p class="text-xs text-muted-foreground leading-relaxed">Establish base parameters, duration, and expedition codes to map the sector timeline.</p>
         </div>
       </div>
-
-      <div class="flex justify-between items-end mb-2 md:hidden">
-        <h3 class="text-xs uppercase tracking-widest text-muted-foreground font-semibold">Mission Visuals</h3>
-        <span class="text-[10px] text-neon-yellow">Max. 3 images, 4 MB each</span>
-      </div>
-
-      <ImageSlotUploader bind:images={uploadedImages} />
     </div>
 
-    <!-- Right Column: Form -->
+    <!-- Right Column: Form Inputs -->
     <div class="order-1 md:order-2 flex flex-col gap-6">
       {#if error}
         <div class="p-3 border border-red-500/30 bg-red-500/5 text-red-500 text-xs rounded-lg flex items-start gap-2 animate-in fade-in duration-200">
@@ -116,42 +92,30 @@
         <Input id="trip_title" placeholder="ENTER_MISSION_CODE..." class="bg-card border-border h-12" bind:value={tripTitle} required />
       </div>
 
-      <div class="space-y-2">
-        <Label for="activity_title" class="text-[10px] uppercase tracking-widest text-secondary font-semibold">First Activity</Label>
-        <Input id="activity_title" placeholder="e.g. Neo-Kyoto Sector 7" class="bg-card border-border" bind:value={activityTitle} required />
-      </div>
-
       <div class="grid grid-cols-2 gap-4">
         <div class="space-y-2">
-          <Label for="activity_date" class="text-[10px] uppercase tracking-widest text-secondary font-semibold">Date</Label>
+          <Label for="start_date" class="text-[10px] uppercase tracking-widest text-secondary font-semibold">Start Date</Label>
           <div class="relative">
-            <Input id="activity_date" type="date" class="bg-card border-border pr-10" bind:value={date} required />
+            <Input id="start_date" type="date" class="bg-card border-border pr-10" bind:value={startDate} required />
             <Calendar class="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none" />
           </div>
         </div>
         <div class="space-y-2">
-          <Label for="activity_time" class="text-[10px] uppercase tracking-widest text-secondary font-semibold">Time</Label>
+          <Label for="end_date" class="text-[10px] uppercase tracking-widest text-secondary font-semibold">End Date</Label>
           <div class="relative">
-            <Input id="activity_time" type="time" class="bg-card border-border" bind:value={time} required />
+            <Input id="end_date" type="date" class="bg-card border-border pr-10" min={startDate} bind:value={endDate} required />
+            <Calendar class="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none" />
           </div>
         </div>
       </div>
 
       <div class="space-y-2">
-        <Label for="activity_location" class="text-[10px] uppercase tracking-widest text-secondary font-semibold">Location</Label>
-        <div class="relative">
-          <Input id="activity_location" placeholder="e.g. Sector 4 Data Hub" class="bg-card border-border" bind:value={location} />
-          <MapPin class="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground" />
-        </div>
-      </div>
-
-      <div class="space-y-2">
-        <Label for="activity_notes" class="text-[10px] uppercase tracking-widest text-secondary font-semibold">Notes</Label>
+        <Label for="trip_description" class="text-[10px] uppercase tracking-widest text-secondary font-semibold">Description / Brief</Label>
         <textarea 
-          id="activity_notes"
+          id="trip_description"
           placeholder="Additional sequence parameters..." 
           class="w-full h-32 rounded-md border border-input bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:shadow-[0_0_10px_rgba(255,42,122,0.4)] transition-all resize-none"
-          bind:value={notes}
+          bind:value={tripDescription}
         ></textarea>
       </div>
 

@@ -18,6 +18,8 @@ class TripApiTest extends TestCase
         $response = $this->actingAs($user, 'sanctum')->postJson('/api/v1/trips', [
             'title' => 'Test Trip',
             'description' => 'A wonderful test trip',
+            'start_date' => '2026-07-01',
+            'end_date' => '2026-07-07',
             'status' => 'planned'
         ]);
 

@@ -40,12 +40,6 @@ class ActivityController extends Controller
             $this->storeImages($activity, $request->input('images'));
         }
 
-        // Update trip dates when a new activity is added
-        $trip->update([
-            'start_date' => $trip->activities()->min('date'),
-            'end_date' => $trip->activities()->max('date'),
-        ]);
-
         return new ActivityResource($activity->fresh('images'));
     }
 
@@ -60,24 +54,12 @@ class ActivityController extends Controller
     {
         $activity->update($request->validated());
 
-        // Update trip dates
-        $trip->update([
-            'start_date' => $trip->activities()->min('date'),
-            'end_date' => $trip->activities()->max('date'),
-        ]);
-
         return new ActivityResource($activity->fresh('images'));
     }
 
     public function destroy(Trip $trip, Activity $activity): \Illuminate\Http\JsonResponse
     {
         $activity->delete();
-
-        // Update trip dates
-        $trip->update([
-            'start_date' => $trip->activities()->min('date'),
-            'end_date' => $trip->activities()->max('date'),
-        ]);
 
         return response()->json([
             'message' => 'Activity deleted successfully',

@@ -276,7 +276,15 @@
             <div class="grid grid-cols-2 gap-4">
               <div class="space-y-2">
                 <Label for="act_date" class="text-[10px] uppercase tracking-widest text-secondary font-semibold">Date</Label>
-                <Input id="act_date" type="date" class="bg-card border-border" bind:value={activityDate} required />
+                <Input 
+                  id="act_date" 
+                  type="date" 
+                  class="bg-card border-border" 
+                  min={trip.start_date ? trip.start_date.substring(0, 10) : undefined} 
+                  max={trip.end_date ? trip.end_date.substring(0, 10) : undefined} 
+                  bind:value={activityDate} 
+                  required 
+                />
               </div>
               <div class="space-y-2">
                 <Label for="act_time" class="text-[10px] uppercase tracking-widest text-secondary font-semibold">Time</Label>

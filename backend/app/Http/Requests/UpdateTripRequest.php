@@ -19,6 +19,8 @@ class UpdateTripRequest extends FormRequest
             'title' => ['sometimes', 'required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'status' => ['sometimes', 'required', 'string', 'in:draft,planned,active,completed,expired,cancelled'],
+            'start_date' => ['sometimes', 'required', 'date'],
+            'end_date' => ['sometimes', 'required', 'date', 'after_or_equal:start_date'],
         ];
     }
 }
