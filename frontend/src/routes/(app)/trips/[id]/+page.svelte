@@ -8,13 +8,13 @@
   import NeonText from '$lib/components/shared/NeonText.svelte';
   import StatusBadge from '$lib/components/shared/StatusBadge.svelte';
   import ImageSlotUploader from '$lib/components/features/trips/ImageSlotUploader.svelte';
+  import DatePicker from '$lib/components/shared/DatePicker.svelte';
   import { 
-    Calendar, 
+    Calendar,
     Clock, 
     MapPin, 
     ArrowLeft, 
     Plus, 
-    Rocket, 
     Navigation, 
     AlertCircle, 
     Image as ImageIcon,
@@ -276,14 +276,11 @@
             <div class="grid grid-cols-2 gap-4">
               <div class="space-y-2">
                 <Label for="act_date" class="text-[10px] uppercase tracking-widest text-secondary font-semibold">Date</Label>
-                <Input 
-                  id="act_date" 
-                  type="date" 
-                  class="bg-card border-border" 
-                  min={trip.start_date ? trip.start_date.substring(0, 10) : undefined} 
-                  max={trip.end_date ? trip.end_date.substring(0, 10) : undefined} 
+                <DatePicker 
                   bind:value={activityDate} 
-                  required 
+                  min={trip.start_date} 
+                  max={trip.end_date} 
+                  placeholder="Date" 
                 />
               </div>
               <div class="space-y-2">

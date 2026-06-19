@@ -4,7 +4,8 @@
   import { Label } from '$lib/components/ui/label';
   import NeonText from '$lib/components/shared/NeonText.svelte';
   import ImageSlotUploader from '$lib/components/features/trips/ImageSlotUploader.svelte';
-  import { Calendar, ArrowLeft, AlertCircle } from 'lucide-svelte';
+  import DatePicker from '$lib/components/shared/DatePicker.svelte';
+  import { ArrowLeft, AlertCircle } from 'lucide-svelte';
   import { api } from '$lib/services/api/client';
   import { goto } from '$app/navigation';
 
@@ -99,17 +100,11 @@
       <div class="grid grid-cols-2 gap-4">
         <div class="space-y-2">
           <Label for="start_date" class="text-[10px] uppercase tracking-widest text-secondary font-semibold">Start Date</Label>
-          <div class="relative">
-            <Input id="start_date" type="date" class="bg-card border-border pr-10" bind:value={startDate} required />
-            <Calendar class="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none" />
-          </div>
+          <DatePicker bind:value={startDate} placeholder="Start Date" />
         </div>
         <div class="space-y-2">
           <Label for="end_date" class="text-[10px] uppercase tracking-widest text-secondary font-semibold">End Date</Label>
-          <div class="relative">
-            <Input id="end_date" type="date" class="bg-card border-border pr-10" min={startDate} bind:value={endDate} required />
-            <Calendar class="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none" />
-          </div>
+          <DatePicker bind:value={endDate} min={startDate} placeholder="End Date" />
         </div>
       </div>
 
