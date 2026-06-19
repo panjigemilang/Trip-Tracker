@@ -37,7 +37,7 @@ class TripController extends Controller
     public function store(StoreTripRequest $request): TripResource
     {
         $trip = DB::transaction(function () use ($request) {
-            $trip = $request->user()->trips()->create(\Illuminate\Support\Arr::except($request->validated(), ['activities']));
+            $trip = $request->user()->trips()->create(\Illuminate\Support\Arr::except($request->validated(), ['activities', 'images']));
 
             if ($request->has('activities')) {
                 foreach ($request->input('activities') as $activityData) {
@@ -50,6 +50,17 @@ class TripController extends Controller
                         $this->storeImages($activity, $images);
                     }
                 }
+            } elseif ($request->has('images') && !empty($request->input('images'))) {
+                // Automatically create a starting activity if the user uploaded images
+                $activity = $trip->activities()->create([
+                    'title' => 'Expedition Start',
+                    'date' => $trip->start_date,
+                    'time' => '09:00',
+                    'location' => null,
+                    'notes' => 'Initialization visuals attached.',
+                    'sort_order' => 1
+                ]);
+                $this->storeImages($activity, $request->input('images'));
             }
 
             return $trip->load('activities.images');

@@ -3,8 +3,8 @@
   import { Input } from '$lib/components/ui/input';
   import { Label } from '$lib/components/ui/label';
   import NeonText from '$lib/components/shared/NeonText.svelte';
-  import StatusBadge from '$lib/components/shared/StatusBadge.svelte';
-  import { Calendar, ArrowLeft, AlertCircle, Rocket } from 'lucide-svelte';
+  import ImageSlotUploader from '$lib/components/features/trips/ImageSlotUploader.svelte';
+  import { Calendar, ArrowLeft, AlertCircle } from 'lucide-svelte';
   import { api } from '$lib/services/api/client';
   import { goto } from '$app/navigation';
 
@@ -14,6 +14,7 @@
   let endDate = $state('');
   let isSubmitting = $state(false);
   let error = $state('');
+  let uploadedImages = $state<{ base64: string, name: string }[]>([]);
 
   async function handleCreateTrip(e: Event) {
     e.preventDefault();
@@ -31,7 +32,8 @@
         description: tripDescription || null,
         start_date: startDate,
         end_date: endDate,
-        status: 'planned'
+        status: 'planned',
+        images: uploadedImages
       });
       
       const tripId = res.data.id;
@@ -67,15 +69,17 @@
   <form onsubmit={handleCreateTrip} class="grid grid-cols-1 md:grid-cols-[1fr_400px] gap-8 w-full">
     <!-- Left Column: Visual Banner -->
     <div class="flex flex-col gap-6 order-2 md:order-1">
-      <div class="relative h-64 md:h-full min-h-64 rounded-xl overflow-hidden border border-primary/30 shadow-[0_0_15px_rgba(255,42,122,0.2)] bg-slate-950/40">
-        <div class="absolute inset-0 bg-linear-to-t from-[#0B0C10] via-[#0B0C10]/40 to-transparent z-10"></div>
-        <img src="https://images.unsplash.com/photo-1605806616949-1e87b487cb2a?q=80&w=800" alt="Cyberpunk City" class="h-full w-full object-cover opacity-70" />
-        <div class="absolute bottom-6 left-6 right-6 z-20">
-          <StatusBadge status="planned" class="mb-2 bg-transparent border-none text-secondary shadow-none px-0 tracking-widest font-bold" />
-          <h2 class="text-2xl font-bold font-heading text-white uppercase tracking-widest mb-1">Sector Navigation</h2>
-          <p class="text-xs text-muted-foreground leading-relaxed">Establish base parameters, duration, and expedition codes to map the sector timeline.</p>
-        </div>
+      <div class="hidden md:block">
+        <h2 class="text-xl font-bold tracking-widest text-secondary mb-2" style="text-shadow: 0 0 10px rgba(0,230,184,0.4);">MISSION_VISUALS</h2>
+        <p class="text-sm text-muted-foreground mb-6 max-w-md">Upload high-resolution reconnaissance imagery to establish visual parameters for the tracking sequence.</p>
       </div>
+
+      <div class="flex justify-between items-end mb-2 md:hidden">
+        <h3 class="text-xs uppercase tracking-widest text-muted-foreground font-semibold">Mission Visuals</h3>
+        <span class="text-[10px] text-neon-yellow">Max. 3 images, 4 MB each</span>
+      </div>
+
+      <ImageSlotUploader bind:images={uploadedImages} />
     </div>
 
     <!-- Right Column: Form Inputs -->
@@ -124,11 +128,8 @@
           Abort_Mission
         </a>
         
-        <div class="flex w-full md:w-auto gap-0">
-          <div class="hidden md:flex h-12 w-12 items-center justify-center bg-secondary/20 text-secondary border border-secondary rounded-l-md">
-            <Rocket class="h-5 w-5" />
-          </div>
-          <Button type="submit" disabled={isSubmitting} class="w-full md:w-auto h-12 md:rounded-l-none bg-[#2A0818] border border-primary text-primary hover:bg-primary hover:text-primary-foreground font-bold tracking-widest uppercase md:px-8">
+        <div class="flex w-full md:w-auto">
+          <Button type="submit" disabled={isSubmitting} class="w-full md:w-auto h-12 bg-[#2A0818] border border-primary text-primary hover:bg-primary hover:text-primary-foreground font-bold tracking-widest uppercase md:px-8">
             <span class="md:hidden mr-2">⚡</span> {isSubmitting ? 'Executing...' : 'Execute_Trip'} <span class="hidden md:inline ml-2">⚡</span>
           </Button>
         </div>

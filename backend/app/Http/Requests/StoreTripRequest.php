@@ -30,6 +30,9 @@ class StoreTripRequest extends FormRequest
             'activities.*.images' => ['sometimes', 'array'],
             'activities.*.images.*.base64' => ['required_with:activities.*.images', 'string'],
             'activities.*.images.*.name' => ['required_with:activities.*.images', 'string'],
+            'images' => ['sometimes', 'array'],
+            'images.*.base64' => ['required_with:images', 'string'],
+            'images.*.name' => ['required_with:images', 'string'],
         ];
     }
 }
