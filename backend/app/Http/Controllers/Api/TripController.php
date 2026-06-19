@@ -24,6 +24,7 @@ class TripController extends Controller
     public function index(Request $request): AnonymousResourceCollection
     {
         $trips = $request->user()->trips()
+            ->with('journey')
             ->when($request->query('status'), function ($query, $status) {
                 $query->whereIn('status', explode(',', $status));
             })
@@ -36,13 +37,22 @@ class TripController extends Controller
     public function store(StoreTripRequest $request): TripResource
     {
         $trip = DB::transaction(function () use ($request) {
-            $trip = $request->user()->trips()->create($request->validated());
+            $trip = $request->user()->trips()->create(\Illuminate\Support\Arr::except($request->validated(), ['activities']));
 
             if ($request->has('activities')) {
-                $trip->activities()->createMany($request->input('activities'));
+                foreach ($request->input('activities') as $activityData) {
+                    $images = $activityData['images'] ?? [];
+                    unset($activityData['images']);
+
+                    $activity = $trip->activities()->create($activityData);
+
+                    if (!empty($images)) {
+                        $this->storeImages($activity, $images);
+                    }
+                }
             }
 
-            return $trip->load('activities');
+            return $trip->load('activities.images');
         });
 
         return new TripResource($trip);
@@ -50,7 +60,7 @@ class TripController extends Controller
 
     public function show(Trip $trip): TripResource
     {
-        return new TripResource($trip->load('activities.images'));
+        return new TripResource($trip->load('activities.images', 'journey'));
     }
 
     public function update(UpdateTripRequest $request, Trip $trip): TripResource
@@ -67,5 +77,37 @@ class TripController extends Controller
         return response()->json([
             'message' => 'Trip deleted successfully',
         ]);
+    }
+
+    private function storeImages($activity, array $images): void
+    {
+        foreach ($images as $imageData) {
+            if (!isset($imageData['base64']) || !isset($imageData['name'])) {
+                continue;
+            }
+            $base64Data = $imageData['base64'];
+            $originalName = $imageData['name'];
+            
+            if (preg_match('/^data:(image\/[a-zA-Z+-\.]+);base64,(.+)$/', $base64Data, $matches)) {
+                $mimeType = $matches[1];
+                $data = base64_decode($matches[2]);
+                $size = strlen($data);
+                
+                $extension = explode('/', $mimeType)[1] ?? 'png';
+                if ($extension === 'jpeg') $extension = 'jpg';
+                $fileName = (string) \Illuminate\Support\Str::uuid() . '.' . $extension;
+                $path = 'activity_images/' . $fileName;
+                
+                \Illuminate\Support\Facades\Storage::disk('public')->put($path, $data);
+                
+                $activity->images()->create([
+                    'disk' => 'public',
+                    'path' => 'storage/' . $path,
+                    'original_name' => $originalName,
+                    'size_bytes' => $size,
+                    'mime_type' => $mimeType,
+                ]);
+            }
+        }
     }
 }

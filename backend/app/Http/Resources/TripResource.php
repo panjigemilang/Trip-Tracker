@@ -21,7 +21,8 @@ class TripResource extends JsonResource
             'expires_at' => $this->expires_at ? $this->expires_at->toIso8601String() : null,
             'created_at' => $this->created_at->toIso8601String(),
             'updated_at' => $this->updated_at->toIso8601String(),
-            'activities' => $this->whenLoaded('activities'), // We will create ActivityResource later
+            'activities' => $this->whenLoaded('activities'),
+            'journey_id' => $this->journey?->id,
         ];
     }
 }

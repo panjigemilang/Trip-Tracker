@@ -17,6 +17,7 @@
   let notes = $state('');
   let isSubmitting = $state(false);
   let error = $state('');
+  let uploadedImages = $state<{ base64: string, name: string }[]>([]);
 
   async function handleCreateTrip(e: Event) {
     e.preventDefault();
@@ -29,23 +30,22 @@
     error = '';
     
     try {
-      // 1. Create Trip
-      const tripRes = await api.post<any>('/trips', {
+      // 1. Create Trip (with nested first Activity and its images)
+      await api.post<any>('/trips', {
         title: tripTitle,
         description: notes,
-        status: 'planned'
-      });
-      
-      const tripId = tripRes.data.id;
-      
-      // 2. Create first Activity
-      await api.post<any>(`/trips/${tripId}/activities`, {
-        title: activityTitle,
-        date: date,
-        time: time,
-        location: location || null,
-        notes: notes || null,
-        sort_order: 1
+        status: 'planned',
+        activities: [
+          {
+            title: activityTitle,
+            date: date,
+            time: time,
+            location: location || null,
+            notes: notes || null,
+            sort_order: 1,
+            images: uploadedImages
+          }
+        ]
       });
       
       goto('/trips');
@@ -99,7 +99,7 @@
         <span class="text-[10px] text-neon-yellow">Max. 3 images, 4 MB each</span>
       </div>
 
-      <ImageSlotUploader />
+      <ImageSlotUploader bind:images={uploadedImages} />
     </div>
 
     <!-- Right Column: Form -->

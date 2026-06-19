@@ -80,6 +80,7 @@
         <HeroTripCard 
           title={activeTrip.title}
           tripId={activeTrip.id}
+          journeyId={activeTrip.journey_id}
           imageSrc="https://images.unsplash.com/photo-1542931287-023b922fa89b?q=80&w=2000"
           description={activeTrip.description || "In-situ navigation across the Shibuya quadrant. High-priority mission to recover encoded signals from the underground synth-network."}
           status={activeTrip.status}

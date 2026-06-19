@@ -25,6 +25,9 @@ class StoreTripRequest extends FormRequest
             'activities.*.location' => ['nullable', 'string', 'max:500'],
             'activities.*.notes' => ['nullable', 'string'],
             'activities.*.sort_order' => ['nullable', 'integer'],
+            'activities.*.images' => ['sometimes', 'array'],
+            'activities.*.images.*.base64' => ['required_with:activities.*.images', 'string'],
+            'activities.*.images.*.name' => ['required_with:activities.*.images', 'string'],
         ];
     }
 }

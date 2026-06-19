@@ -22,6 +22,9 @@ class StoreActivityRequest extends FormRequest
             'location' => ['nullable', 'string', 'max:500'],
             'notes' => ['nullable', 'string'],
             'sort_order' => ['nullable', 'integer'],
+            'images' => ['sometimes', 'array'],
+            'images.*.base64' => ['required_with:images', 'string'],
+            'images.*.name' => ['required_with:images', 'string'],
         ];
     }
 }

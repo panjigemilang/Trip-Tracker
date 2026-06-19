@@ -9,6 +9,7 @@
   export let description: string;
   export let status: string;
   export let tripId: string = '';
+  export let journeyId: string | null = null;
 </script>
 
 <CyberCard class="overflow-hidden p-0 relative h-100 border border-primary/30" glowState="primary">
@@ -31,9 +32,15 @@
     </p>
     
     <div class="flex gap-4">
-      <Button href="/trips/{tripId}" class="px-8 py-6 rounded-none bg-primary text-primary-foreground hover:bg-primary/90 font-bold tracking-widest shadow-[0_0_20px_rgba(255,42,122,0.6)]">
-        RESUME SESSION
-      </Button>
+      {#if journeyId}
+        <Button href="/journey/{journeyId}" class="px-8 py-6 rounded-none bg-primary text-primary-foreground hover:bg-primary/90 font-bold tracking-widest shadow-[0_0_20px_rgba(255,42,122,0.6)]">
+          RESUME SESSION
+        </Button>
+      {:else}
+        <Button href="/trips/{tripId}" class="px-8 py-6 rounded-none bg-primary text-primary-foreground hover:bg-primary/90 font-bold tracking-widest shadow-[0_0_20px_rgba(255,42,122,0.6)]">
+          VIEW DETAILS
+        </Button>
+      {/if}
       <Button href="/trips/{tripId}" variant="outline" class="px-8 py-6 rounded-none border-secondary text-secondary hover:bg-secondary/10 hover:text-secondary font-bold tracking-widest shadow-[0_0_20px_rgba(0,230,184,0.1)]">
         VIEW LOGISTICS
       </Button>
