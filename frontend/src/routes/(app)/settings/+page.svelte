@@ -1,9 +1,15 @@
 <script lang="ts">
   import { pushService } from '$lib/services/pushService';
   import { onMount } from 'svelte';
-  import { Bell, BellOff, Smartphone } from 'lucide-svelte';
+  import { Bell, BellOff, Smartphone, LogOut } from 'lucide-svelte';
   import { Button } from '$lib/components/ui/button';
   import { toast } from 'svelte-sonner';
+  import { authStore } from '$lib/stores/auth.svelte';
+
+  async function handleLogout() {
+    await authStore.logout();
+    window.location.href = '/login';
+  }
 
   let isSubscribed = $state(false);
   let isLoading = $state(true);
@@ -82,6 +88,28 @@
         <div>
           <strong>iOS Users:</strong> To enable push notifications on iOS, you must first add this web app to your Home Screen (Share &gt; Add to Home Screen), and launch it from there.
         </div>
+      </div>
+    </section>
+
+    <!-- Session Control (Logout) -->
+    <section class="border-t border-border/50 pt-8 mt-8">
+      <h2 class="text-xl font-bold mb-4 text-red-500 uppercase tracking-widest" style="text-shadow: 0 0 10px rgba(239,68,68,0.2);">Session Control</h2>
+      
+      <div class="bg-card border border-red-500/20 rounded-xl p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <LogOut class="w-5 h-5 text-red-500" />
+            <h3 class="font-medium text-lg text-white">Terminate Agent Session</h3>
+          </div>
+          <p class="text-slate-500 text-sm">Disconnect this terminal and flush active credentials cache.</p>
+        </div>
+        
+        <Button 
+          onclick={handleLogout}
+          class="w-full md:w-auto bg-[#2A0818] border border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-bold tracking-widest uppercase md:px-6"
+        >
+          Terminate Session
+        </Button>
       </div>
     </section>
   </div>

@@ -18,8 +18,21 @@ export class AuthStore {
 			try {
 				const response = await api.request<{ data: User }>('/auth/user');
 				this.user = response.data;
+				this.loading = false;
+				return;
 			} catch (error) {
 				localStorage.removeItem('auth_token');
+			}
+		}
+
+		// Fallback for Guest session: silent auto-login if token expired or backend database was reset
+		const guestCredsStr = localStorage.getItem('guest_credentials');
+		if (guestCredsStr) {
+			try {
+				const creds = JSON.parse(guestCredsStr);
+				await this.login(creds);
+			} catch (error) {
+				localStorage.removeItem('guest_credentials');
 			}
 		}
 		this.loading = false;
@@ -54,6 +67,10 @@ export class AuthStore {
 			password_confirmation: `guest_${rand}_pass`
 		};
 		await this.register(guestCredentials);
+		localStorage.setItem('guest_credentials', JSON.stringify({
+			email: guestCredentials.email,
+			password: guestCredentials.password
+		}));
 	}
 
 	async logout(): Promise<void> {
@@ -63,6 +80,7 @@ export class AuthStore {
 			// Ignore if token is already invalid
 		} finally {
 			localStorage.removeItem('auth_token');
+			localStorage.removeItem('guest_credentials');
 			this.user = null;
 		}
 	}
