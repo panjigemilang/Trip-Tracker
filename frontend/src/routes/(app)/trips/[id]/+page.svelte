@@ -7,7 +7,6 @@
   import CyberCard from '$lib/components/shared/CyberCard.svelte';
   import NeonText from '$lib/components/shared/NeonText.svelte';
   import StatusBadge from '$lib/components/shared/StatusBadge.svelte';
-  import ImageSlotUploader from '$lib/components/features/trips/ImageSlotUploader.svelte';
   import DatePicker from '$lib/components/shared/DatePicker.svelte';
   import { 
     Calendar,
@@ -32,11 +31,9 @@
   let activityTime = $state('');
   let activityLocation = $state('');
   let activityNotes = $state('');
-  let activityImages = $state<{ base64: string, name: string }[]>([]);
   let isSubmitting = $state(false);
   let error = $state('');
   let isFormOpen = $state(false);
-  let uploaderKey = $state(0); // For resetting uploader component
 
   // Format date helper
   function formatDate(dStr: string) {
@@ -99,7 +96,7 @@
         time: activityTime,
         location: activityLocation || null,
         notes: activityNotes || null,
-        images: activityImages
+        images: []
       });
 
       toast.success('New segment initialized.');
@@ -109,8 +106,6 @@
       activityTitle = '';
       activityLocation = '';
       activityNotes = '';
-      activityImages = [];
-      uploaderKey += 1; // Force reset the ImageSlotUploader
 
       if (!addAnother) {
         isFormOpen = false;
@@ -304,16 +299,7 @@
               ></textarea>
             </div>
 
-            <!-- Segment Visuals -->
-            <div class="space-y-2">
-              <div class="flex justify-between items-center mb-1">
-                <Label class="text-[10px] uppercase tracking-widest text-secondary font-semibold">Segment Visuals</Label>
-                <span class="text-[8px] text-muted-foreground uppercase tracking-widest">Max 3</span>
-              </div>
-              {#key uploaderKey}
-                <ImageSlotUploader bind:images={activityImages} />
-              {/key}
-            </div>
+
 
             <!-- Action buttons -->
             <div class="flex flex-col gap-3 pt-4 border-t border-border/50">
@@ -322,7 +308,7 @@
                 disabled={isSubmitting}
                 class="w-full h-11 bg-[#2A0818] border border-primary text-primary hover:bg-primary hover:text-primary-foreground font-bold tracking-widest uppercase"
               >
-                {isSubmitting ? 'Processing...' : 'Execute Segment'}
+                {isSubmitting ? 'Processing...' : 'Submit Segment'}
               </Button>
               
               <Button 
@@ -331,7 +317,7 @@
                 disabled={isSubmitting}
                 class="w-full h-11 border-secondary/50 text-secondary hover:bg-secondary/10 hover:text-secondary font-bold tracking-widest uppercase"
               >
-                Execute & Add Next
+                Submit & Add Next
               </Button>
             </div>
           </div>
