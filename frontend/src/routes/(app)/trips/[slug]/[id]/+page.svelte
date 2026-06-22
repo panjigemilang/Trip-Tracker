@@ -8,6 +8,8 @@
   import NeonText from '$lib/components/shared/NeonText.svelte';
   import StatusBadge from '$lib/components/shared/StatusBadge.svelte';
   import DatePicker from '$lib/components/shared/DatePicker.svelte';
+  import TimePicker from '$lib/components/shared/TimePicker.svelte';
+  import ImageGallery from '$lib/components/shared/ImageGallery.svelte';
   import { 
     Calendar,
     Clock, 
@@ -25,6 +27,15 @@
   let { data } = $props<{ data: { trip: any } }>();
   let trip = $state(data.trip);
 
+  const isUpcoming = $derived.by(() => {
+    if (!trip.start_date) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const start = new Date(trip.start_date);
+    start.setHours(0, 0, 0, 0);
+    return start > today;
+  });
+
   // New Activity form fields
   let activityTitle = $state('');
   let activityDate = $state('');
@@ -34,6 +45,17 @@
   let isSubmitting = $state(false);
   let error = $state('');
   let isFormOpen = $state(false);
+
+  // Gallery state
+  let isGalleryOpen = $state(false);
+  let galleryImages = $state<string[]>([]);
+  let galleryIndex = $state(0);
+
+  function openGallery(images: any[], index: number) {
+    galleryImages = images.map(img => getMediaUrl(img.path));
+    galleryIndex = index;
+    isGalleryOpen = true;
+  }
 
   // Format date helper
   function formatDate(dStr: string) {
@@ -67,11 +89,11 @@
   async function handleStartJourney() {
     try {
       if (trip.journey_id) {
-        goto(`/journey/${trip.journey_id}`);
+        goto('/track');
       } else {
         const journey = await journeyStore.startJourney(trip.id);
         toast.success('Journey tracking initialized successfully.');
-        goto(`/journey/${journey.id}`);
+        goto('/track');
       }
     } catch (e: any) {
       console.error(e);
@@ -95,8 +117,7 @@
         date: activityDate,
         time: activityTime,
         location: activityLocation || null,
-        notes: activityNotes || null,
-        images: []
+        notes: activityNotes || null
       });
 
       toast.success('New segment initialized.');
@@ -104,6 +125,8 @@
 
       // Reset form fields
       activityTitle = '';
+      activityDate = '';
+      activityTime = '';
       activityLocation = '';
       activityNotes = '';
 
@@ -147,14 +170,42 @@
     </div>
 
     <!-- Active Tracking controls -->
-    <div class="flex gap-4">
-      <Button 
-        onclick={handleStartJourney}
-        class="h-12 bg-[#2A0818] border border-primary text-primary hover:bg-primary hover:text-primary-foreground font-bold tracking-widest uppercase px-6 shadow-none hover:shadow-[0_0_15px_rgba(255,42,122,0.6)]"
-      >
-        <Navigation class="h-4 w-4 mr-2" />
-        {trip.journey_id ? 'Resume Tracking' : 'Start Journey'}
-      </Button>
+    <div class="flex gap-4 font-mono">
+      {#if trip.status === 'completed'}
+        <div class="h-12 flex items-center gap-2 border border-green-500/30 bg-green-500/10 text-green-400 font-bold uppercase tracking-widest px-6 rounded-lg text-xs">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          Journey Completed
+        </div>
+      {:else if trip.status === 'cancelled'}
+        <div class="h-12 flex items-center gap-2 border border-red-500/30 bg-red-500/10 text-red-400 font-bold uppercase tracking-widest px-6 rounded-lg text-xs">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+          Journey Cancelled
+        </div>
+      {:else if trip.journey_id}
+        <Button 
+          onclick={handleStartJourney}
+          class="h-12 bg-[#2A0818] border border-primary text-primary hover:bg-primary hover:text-primary-foreground font-bold tracking-widest uppercase px-6 shadow-none hover:shadow-[0_0_15px_rgba(255,42,122,0.6)]"
+        >
+          <Navigation class="h-4 w-4 mr-2" />
+          Resume Tracking
+        </Button>
+      {:else if isUpcoming}
+        <Button 
+          disabled
+          class="h-12 bg-muted border border-border text-muted-foreground font-bold tracking-widest uppercase px-6 cursor-not-allowed opacity-60"
+        >
+          <Clock class="h-4 w-4 mr-2" />
+          Start Journey (Upcoming)
+        </Button>
+      {:else}
+        <Button 
+          onclick={handleStartJourney}
+          class="h-12 bg-[#2A0818] border border-primary text-primary hover:bg-primary hover:text-primary-foreground font-bold tracking-widest uppercase px-6 shadow-none hover:shadow-[0_0_15px_rgba(255,42,122,0.6)]"
+        >
+          <Navigation class="h-4 w-4 mr-2" />
+          Start Journey
+        </Button>
+      {/if}
     </div>
   </header>
 
@@ -232,8 +283,13 @@
                 <!-- Activity Images -->
                 {#if act.images && act.images.length > 0}
                   <div class="grid grid-cols-3 gap-3 mt-4">
-                    {#each act.images as img}
-                      <div class="relative aspect-video rounded-lg overflow-hidden border border-border/50 hover:border-primary/50 transition-colors">
+                    {#each act.images as img, i}
+                      <!-- svelte-ignore a11y_click_events_have_key_events -->
+                      <!-- svelte-ignore a11y_no_static_element_interactions -->
+                      <div 
+                        class="relative aspect-video rounded-lg overflow-hidden border border-border/50 hover:border-primary/50 hover:scale-[1.02] hover:shadow-[0_0_15px_rgba(255,42,122,0.3)] transition-all cursor-pointer"
+                        onclick={() => openGallery(act.images, i)}
+                      >
                         <img src={getMediaUrl(img.path)} alt={img.original_name} class="w-full h-full object-cover" />
                       </div>
                     {/each}
@@ -264,13 +320,13 @@
 
           <div class="space-y-4">
             <div class="space-y-2">
-              <Label for="act_title" class="text-[10px] uppercase tracking-widest text-secondary font-semibold">Segment Name</Label>
+              <Label for="act_title" class="text-[10px] uppercase tracking-widest text-secondary font-semibold">Segment Name <span class="text-red-500">*</span></Label>
               <Input id="act_title" placeholder="e.g. Shibuya Cyber Grid" class="bg-card border-border" bind:value={activityTitle} required />
             </div>
 
             <div class="grid grid-cols-2 gap-4">
               <div class="space-y-2">
-                <Label for="act_date" class="text-[10px] uppercase tracking-widest text-secondary font-semibold">Date</Label>
+                <Label for="act_date" class="text-[10px] uppercase tracking-widest text-secondary font-semibold">Date <span class="text-red-500">*</span></Label>
                 <DatePicker 
                   bind:value={activityDate} 
                   min={trip.start_date} 
@@ -279,8 +335,8 @@
                 />
               </div>
               <div class="space-y-2">
-                <Label for="act_time" class="text-[10px] uppercase tracking-widest text-secondary font-semibold">Time</Label>
-                <Input id="act_time" type="time" class="bg-card border-border" bind:value={activityTime} required />
+                <Label for="act_time" class="text-[10px] uppercase tracking-widest text-secondary font-semibold">Time <span class="text-red-500">*</span></Label>
+                <TimePicker bind:value={activityTime} />
               </div>
             </div>
 
@@ -325,4 +381,5 @@
       {/if}
     </div>
   </div>
-</div>
+
+<ImageGallery bind:isOpen={isGalleryOpen} images={galleryImages} bind:currentIndex={galleryIndex} /></div>

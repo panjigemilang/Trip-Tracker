@@ -34,6 +34,9 @@ class ActivityController extends Controller
         $this->authorize('update', $trip);
 
         $activityData = \Illuminate\Support\Arr::except($request->validated(), ['images']);
+        if (!isset($activityData['sort_order'])) {
+            $activityData['sort_order'] = $trip->activities()->max('sort_order') + 1;
+        }
         $activity = $trip->activities()->create($activityData);
 
         if ($request->has('images')) {

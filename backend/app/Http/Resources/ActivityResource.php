@@ -13,7 +13,7 @@ class ActivityResource extends JsonResource
         return [
             'id' => $this->id,
             'trip_id' => $this->trip_id,
-            'date' => $this->date ? $this->date->format('Y-m-d') : null,
+            'date' => $this->date ? ($this->date instanceof \DateTimeInterface ? $this->date->format('Y-m-d') : \Carbon\Carbon::parse($this->date)->format('Y-m-d')) : null,
             'time' => $this->time,
             'title' => $this->title,
             'location' => $this->location,

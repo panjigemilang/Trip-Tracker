@@ -56,4 +56,53 @@ class AuthController extends Controller
             'message' => 'Logged out successfully'
         ]);
     }
+
+    public function googleRedirect()
+    {
+        return response()->json([
+            'url' => \Laravel\Socialite\Facades\Socialite::driver('google')->stateless()->redirect()->getTargetUrl()
+        ]);
+    }
+
+    public function googleCallback()
+    {
+        try {
+            $driver = \Laravel\Socialite\Facades\Socialite::driver('google')->stateless();
+            if (config('app.env') === 'local' || config('app.env') === 'testing') {
+                $driver->setHttpClient(new \GuzzleHttp\Client(['verify' => false]));
+            }
+            $googleUser = $driver->user();
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Google OAuth callback error: ' . $e->getMessage(), [
+                'exception' => $e
+            ]);
+            $frontendUrl = env('FRONTEND_URL', 'http://localhost:5173');
+            return redirect($frontendUrl . '/login?error=Google authentication failed.');
+        }
+
+        // Find or create user
+        $user = User::where('google_id', $googleUser->getId())
+            ->orWhere('email', $googleUser->getEmail())
+            ->first();
+
+        if ($user) {
+            // Update google_id and avatar_url if not set
+            $user->update([
+                'google_id' => $user->google_id ?: $googleUser->getId(),
+                'avatar_url' => $user->avatar_url ?: $googleUser->getAvatar(),
+            ]);
+        } else {
+            $user = User::create([
+                'name' => $googleUser->getName() ?: $googleUser->getNickname() ?: 'Google User',
+                'email' => $googleUser->getEmail(),
+                'google_id' => $googleUser->getId(),
+                'avatar_url' => $googleUser->getAvatar(),
+            ]);
+        }
+
+        $token = $user->createToken('auth_token')->plainTextToken;
+        $frontendUrl = env('FRONTEND_URL', 'http://localhost:5173');
+
+        return redirect($frontendUrl . '/auth/google/callback?token=' . $token);
+    }
 }

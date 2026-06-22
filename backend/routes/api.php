@@ -19,12 +19,17 @@ use App\Http\Controllers\Api\TripController;
 
 Route::post('/v1/auth/register', [AuthController::class, 'register']);
 Route::post('/v1/auth/login', [AuthController::class, 'login']);
+Route::get('/v1/auth/google/redirect', [AuthController::class, 'googleRedirect']);
 
 Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::get('/auth/user', function (Request $request) {
         return ['data' => $request->user()];
     });
+
+    // Push Notification Routes
+    Route::post('/push/subscribe', [App\Http\Controllers\Api\PushController::class, 'subscribe']);
+    Route::post('/push/unsubscribe', [App\Http\Controllers\Api\PushController::class, 'unsubscribe']);
 
     Route::apiResource('trips', TripController::class);
     Route::apiResource('trips.activities', App\Http\Controllers\Api\ActivityController::class);

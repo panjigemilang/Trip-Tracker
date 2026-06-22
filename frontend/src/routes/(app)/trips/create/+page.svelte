@@ -38,8 +38,9 @@
       });
       
       const tripId = res.data.id;
+      const slug = res.data.slug || 'trip';
       // Direct deep link to trip details so they can add segments/activities immediately
-      goto(`/trips/${tripId}`);
+      goto(`/trips/${slug}/${tripId}`);
     } catch (err: any) {
       console.error(err);
       error = err.message || 'Failed to initialize trip protocol.';
@@ -119,7 +120,7 @@
         
         <div class="flex w-full md:w-auto">
           <Button type="submit" disabled={isSubmitting} class="w-full md:w-auto h-12 bg-[#2A0818] border border-primary text-primary hover:bg-primary hover:text-primary-foreground font-bold tracking-widest uppercase md:px-8">
-            <span class="md:hidden mr-2">⚡</span> {isSubmitting ? 'Executing...' : 'Execute_Trip'} <span class="hidden md:inline ml-2">⚡</span>
+            <span class="md:hidden mr-2">⚡</span> {isSubmitting ? 'Submitting...' : 'Submit'} <span class="hidden md:inline ml-2">⚡</span>
           </Button>
         </div>
       </div>

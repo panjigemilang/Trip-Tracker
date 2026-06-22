@@ -6,6 +6,7 @@
   import { Button } from '$lib/components/ui/button';
   import { onMount } from 'svelte';
   import { Plus } from 'lucide-svelte';
+  import { getDisplayStatus } from '$lib/utils/tripStatus';
 
   let trips = $state<any[]>([]);
   let isLoading = $state(true);
@@ -13,7 +14,12 @@
   onMount(async () => {
     try {
       const res = await api.get<any>('/trips');
-      trips = res.data || [];
+      trips = (res.data || []).filter((t: any) => 
+        t.status !== 'completed' && 
+        t.status !== 'cancelled' && 
+        t.journey?.status !== 'completed' && 
+        t.journey?.status !== 'cancelled'
+      );
     } catch (e) {
       console.error('Failed to fetch trips:', e);
     } finally {
@@ -32,6 +38,15 @@
     if (!activeTrip) return [];
     return trips.filter(t => t.id !== activeTrip.id);
   });
+
+  // Get image URL
+  function getImageUrl(trip: any, w: number = 600) {
+    if (trip.first_image_url) {
+      if (trip.first_image_url.startsWith('http')) return trip.first_image_url;
+      return `http://localhost:8000/${trip.first_image_url}`;
+    }
+    return `https://images.unsplash.com/photo-1542931287-023b922fa89b?q=80&w=${w}`;
+  }
 </script>
 
 <div class="flex flex-col gap-8 pb-10 max-w-6xl mx-auto w-full">
@@ -80,10 +95,13 @@
         <HeroTripCard 
           title={activeTrip.title}
           tripId={activeTrip.id}
+          tripSlug={activeTrip.slug}
           journeyId={activeTrip.journey_id}
-          imageSrc="https://images.unsplash.com/photo-1542931287-023b922fa89b?q=80&w=2000"
+          imageSrc={getImageUrl(activeTrip, 2000)}
           description={activeTrip.description || "In-situ navigation across the Shibuya quadrant. High-priority mission to recover encoded signals from the underground synth-network."}
-          status={activeTrip.status}
+          status={getDisplayStatus(activeTrip)}
+          startDate={activeTrip.start_date}
+          endDate={activeTrip.end_date}
         />
       </section>
     {/if}
@@ -101,26 +119,20 @@
         {#if activeTrip}
           <!-- Mobile only shows the active trip as a standard card at the top -->
           <div class="md:hidden">
-            <a href="/trips/{activeTrip.id}" class="block">
+            <a href="/trips/{activeTrip.slug || 'trip'}/{activeTrip.id}" class="block">
               <StandardTripCard 
-                title={activeTrip.title}
-                imageSrc="https://images.unsplash.com/photo-1542931287-023b922fa89b?q=80&w=600"
-                dateRange={activeTrip.start_date ? `${new Date(activeTrip.start_date).toLocaleDateString()} - ${activeTrip.end_date ? new Date(activeTrip.end_date).toLocaleDateString() : ''}` : 'TBD'}
-                location={activeTrip.activities?.[0]?.location || 'Sector 7G'}
-                status={activeTrip.status}
+                trip={activeTrip}
+                imageSrc={getImageUrl(activeTrip, 600)}
               />
             </a>
           </div>
         {/if}
 
         {#each otherTrips as trip}
-          <a href="/trips/{trip.id}" class="block">
+          <a href="/trips/{trip.slug || 'trip'}/{trip.id}" class="block">
             <StandardTripCard 
-              title={trip.title}
-              imageSrc="https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=600"
-              dateRange={trip.start_date ? `${new Date(trip.start_date).toLocaleDateString()} - ${trip.end_date ? new Date(trip.end_date).toLocaleDateString() : ''}` : 'TBD'}
-              location={trip.activities?.[0]?.location || 'TBD'}
-              status={trip.status}
+              trip={trip}
+              imageSrc={getImageUrl(trip, 600)}
             />
           </a>
         {/each}

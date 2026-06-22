@@ -139,7 +139,7 @@
   <button
     type="button"
     onclick={() => isOpen = !isOpen}
-    class="flex items-center justify-between w-full h-12 px-4 rounded-md border border-border bg-card text-sm text-left text-foreground hover:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary focus:shadow-[0_0_10px_rgba(255,42,122,0.4)] transition-all cursor-pointer"
+    class="flex items-center justify-between w-full h-10 px-3 py-2 rounded-md border border-border bg-card text-sm text-left text-foreground hover:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary focus:shadow-[0_0_10px_rgba(255,42,122,0.4)] transition-all cursor-pointer"
   >
     <span class={value ? 'text-white font-medium' : 'text-muted-foreground'}>
       {displayValue || placeholder}

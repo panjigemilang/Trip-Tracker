@@ -1,5 +1,6 @@
 <script lang="ts">
   import { ImagePlus, X } from 'lucide-svelte';
+  import ImageGallery from '$lib/components/shared/ImageGallery.svelte';
 
   let { images = $bindable([]) } = $props<{ images: { base64: string, name: string }[] }>();
 
@@ -11,6 +12,19 @@
 
   let slots = $state<(ImageSlot | null)[]>([null, null, null]);
   let fileInputs = $state<(HTMLInputElement | null)[]>([null, null, null]);
+
+  // Gallery state
+  let isGalleryOpen = $state(false);
+  let galleryImages = $state<string[]>([]);
+  let galleryIndex = $state(0);
+
+  function openGallery(index: number) {
+    if (!slots[index]) return;
+    const validSlots = slots.filter((s): s is ImageSlot => s !== null);
+    galleryImages = validSlots.map(s => s.preview);
+    galleryIndex = validSlots.findIndex(s => s.preview === slots[index]!.preview);
+    isGalleryOpen = true;
+  }
 
   function triggerUpload(index: number) {
     fileInputs[index]?.click();
@@ -69,7 +83,12 @@
     />
 
     {#if slots[i]}
-      <div class="relative aspect-4/5 md:aspect-video w-full group rounded-xl border border-primary/30 overflow-hidden flex flex-col items-center justify-center bg-card">
+      <!-- svelte-ignore a11y_click_events_have_key_events -->
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
+      <div 
+        class="relative aspect-4/5 md:aspect-video w-full group rounded-xl border border-primary/30 overflow-hidden flex flex-col items-center justify-center bg-card cursor-pointer hover:border-primary/50"
+        onclick={() => openGallery(i)}
+      >
         <img src={slots[i]!.preview} alt="Preview" class="absolute inset-0 w-full h-full object-cover" />
         <button
           type="button"
@@ -91,3 +110,5 @@
     {/if}
   {/each}
 </div>
+
+<ImageGallery bind:isOpen={isGalleryOpen} images={galleryImages} bind:currentIndex={galleryIndex} />

@@ -24,7 +24,7 @@ class TripController extends Controller
     public function index(Request $request): AnonymousResourceCollection
     {
         $trips = $request->user()->trips()
-            ->with('journey')
+            ->with(['journey', 'activities.images'])
             ->when($request->query('status'), function ($query, $status) {
                 $query->whereIn('status', explode(',', $status));
             })

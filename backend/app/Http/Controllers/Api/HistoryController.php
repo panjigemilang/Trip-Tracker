@@ -11,7 +11,7 @@ class HistoryController extends Controller
     {
         $histories = $request->user()->trips()
             ->whereIn('status', ['completed', 'cancelled'])
-            ->with(['activities', 'journey.activities'])
+            ->with(['activities.images', 'journey.activities'])
             ->orderBy('start_date', 'desc')
             ->get();
 
@@ -24,7 +24,7 @@ class HistoryController extends Controller
     {
         $trip = $request->user()->trips()
             ->whereIn('status', ['completed', 'cancelled'])
-            ->with(['activities', 'journey.activities.activity'])
+            ->with(['activities.images', 'journey.activities.activity'])
             ->findOrFail($id);
 
         return response()->json([

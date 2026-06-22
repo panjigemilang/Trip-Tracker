@@ -24,6 +24,7 @@ class Trip extends Model
         'start_date',
         'end_date',
         'expires_at',
+        'slug',
     ];
 
     protected $casts = [
@@ -32,12 +33,53 @@ class Trip extends Model
         'expires_at' => 'datetime',
     ];
 
+    protected $appends = ['first_image_url'];
+
+    public function getFirstImageUrlAttribute()
+    {
+        if ($this->relationLoaded('activities') && $this->activities->isNotEmpty()) {
+            $firstActivity = $this->activities->first();
+            if ($firstActivity->relationLoaded('images') && $firstActivity->images->isNotEmpty()) {
+                return $firstActivity->images->first()->path;
+            }
+        }
+        return null;
+    }
+
+    public static function generateUniqueSlug($title, $userId, $currentTripId = null)
+    {
+        $slug = Str::slug($title) ?: 'trip';
+        $originalSlug = $slug;
+        $count = 1;
+        
+        while (true) {
+            $query = static::where('user_id', $userId)->where('slug', $slug);
+            if ($currentTripId) {
+                $query->where('id', '!=', $currentTripId);
+            }
+            if (!$query->exists()) {
+                break;
+            }
+            $slug = $originalSlug . '-' . (++$count);
+        }
+        
+        return $slug;
+    }
+
     protected static function boot()
     {
         parent::boot();
         static::creating(function ($model) {
             if (empty($model->{$model->getKeyName()})) {
                 $model->{$model->getKeyName()} = (string) Str::uuid();
+            }
+            if (empty($model->slug) && !empty($model->title)) {
+                $model->slug = static::generateUniqueSlug($model->title, $model->user_id);
+            }
+        });
+        static::updating(function ($model) {
+            if ($model->isDirty('title')) {
+                $model->slug = static::generateUniqueSlug($model->title, $model->user_id, $model->id);
             }
         });
     }

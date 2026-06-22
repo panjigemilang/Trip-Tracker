@@ -37,7 +37,7 @@
         </div>
     </CardContent>
     <CardFooter>
-        <Button variant="outline" class="w-full justify-between" href={`/trips/${trip.id}`}>
+        <Button variant="outline" class="w-full justify-between" href={`/trips/${trip.slug || 'trip'}/${trip.id}`}>
             View Trip Details
             <ArrowRight class="w-4 h-4" />
         </Button>

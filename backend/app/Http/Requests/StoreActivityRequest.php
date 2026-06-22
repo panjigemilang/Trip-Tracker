@@ -16,8 +16,8 @@ class StoreActivityRequest extends FormRequest
     public function rules(): array
     {
         $trip = $this->route('trip');
-        $minDate = $trip && $trip->start_date ? $trip->start_date->format('Y-m-d') : null;
-        $maxDate = $trip && $trip->end_date ? $trip->end_date->format('Y-m-d') : null;
+        $minDate = $trip && $trip->start_date ? ($trip->start_date instanceof \DateTimeInterface ? $trip->start_date->format('Y-m-d') : \Carbon\Carbon::parse($trip->start_date)->format('Y-m-d')) : null;
+        $maxDate = $trip && $trip->end_date ? ($trip->end_date instanceof \DateTimeInterface ? $trip->end_date->format('Y-m-d') : \Carbon\Carbon::parse($trip->end_date)->format('Y-m-d')) : null;
 
         return [
             'date' => [

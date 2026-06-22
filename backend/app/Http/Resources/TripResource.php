@@ -14,6 +14,7 @@ class TripResource extends JsonResource
             'id' => $this->id,
             'user_id' => $this->user_id,
             'title' => $this->title,
+            'slug' => $this->slug,
             'description' => $this->description,
             'status' => $this->status,
             'start_date' => $this->start_date ? $this->start_date->format('Y-m-d') : null,
@@ -21,6 +22,7 @@ class TripResource extends JsonResource
             'expires_at' => $this->expires_at ? $this->expires_at->toIso8601String() : null,
             'created_at' => $this->created_at->toIso8601String(),
             'updated_at' => $this->updated_at->toIso8601String(),
+            'first_image_url' => $this->first_image_url,
             'activities' => $this->whenLoaded('activities'),
             'journey_id' => $this->journey?->id,
         ];

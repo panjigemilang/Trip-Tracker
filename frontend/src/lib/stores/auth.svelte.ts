@@ -73,6 +73,27 @@ export class AuthStore {
 		}));
 	}
 
+	async loginWithGoogle(): Promise<void> {
+		if (typeof window === 'undefined') return;
+		const res = await api.request<{ url: string }>('/auth/google/redirect');
+		if (res.url) {
+			window.location.href = res.url;
+		} else {
+			throw new Error('Google redirect URL not found.');
+		}
+	}
+
+	async handleGoogleCallback(token: string): Promise<void> {
+		localStorage.setItem('auth_token', token);
+		try {
+			const response = await api.request<{ data: User }>('/auth/user');
+			this.user = response.data;
+		} catch (error) {
+			localStorage.removeItem('auth_token');
+			throw error;
+		}
+	}
+
 	async logout(): Promise<void> {
 		try {
 			await api.request('/auth/logout', { method: 'POST' });

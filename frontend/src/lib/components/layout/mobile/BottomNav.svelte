@@ -5,7 +5,6 @@
   const navItems = [
     { name: 'TRIPS', href: '/trips', icon: Map },
     { name: 'TRACK', href: '/track', icon: Navigation },
-    { name: 'CONFIG', href: '/settings', icon: Settings },
     { name: 'IMPORT', href: '/import', icon: UploadCloud },
     { name: 'HISTORY', href: '/history', icon: History }
   ];

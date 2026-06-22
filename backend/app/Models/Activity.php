@@ -25,6 +25,10 @@ class Activity extends Model
         'sort_order',
     ];
 
+    protected $casts = [
+        'date' => 'date',
+    ];
+
     protected static function boot()
     {
         parent::boot();

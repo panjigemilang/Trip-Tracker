@@ -7,10 +7,12 @@ use App\Models\Trip;
 use App\Models\Journey;
 use App\Models\Activity;
 use App\Enums\ActivityStatus;
+use App\Enums\JourneyStatus;
 use App\Http\Requests\UpdateActivityStatusRequest;
 use App\Services\JourneyEngine;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Carbon\Carbon;
 
 class JourneyController extends Controller
 {
@@ -36,6 +38,12 @@ class JourneyController extends Controller
             ], 400);
         }
 
+        if ($trip->start_date && Carbon::today()->lt($trip->start_date->startOfDay())) {
+            return response()->json([
+                'message' => 'A journey can only be started on its scheduled date.'
+            ], 400);
+        }
+
         $journey = $this->engine->startJourney($trip->id, $request->user()->id);
 
         $trip->update(['status' => 'active']);
@@ -50,6 +58,10 @@ class JourneyController extends Controller
     {
         if ($journey->user_id !== $request->user()->id) {
             abort(403);
+        }
+
+        if ($journey->status === JourneyStatus::ACTIVE) {
+            $this->engine->evaluateJourney($journey);
         }
 
         return response()->json([

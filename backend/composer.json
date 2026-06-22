@@ -6,15 +6,21 @@
     "license": "MIT",
     "require": {
         "php": "^7.3|^8.0",
+        "doctrine/dbal": "^3.0",
         "fruitcake/laravel-cors": "^2.0",
         "guzzlehttp/guzzle": "^7.0.1",
+        "laravel-notification-channels/webpush": "^6.0",
         "laravel/framework": "^8.75",
         "laravel/sanctum": "^2.11",
+        "laravel/socialite": "^5.28",
         "laravel/tinker": "^2.5",
         "maatwebsite/excel": "^3.1",
-        "predis/predis": "^3.5"
+        "maennchen/zipstream-php": "^2.1",
+        "predis/predis": "^3.5",
+        "symfony/css-selector": "^5.4"
     },
     "require-dev": {
+        "doctrine/instantiator": "^1.5",
         "facade/ignition": "^2.5",
         "fakerphp/faker": "^1.9.1",
         "laravel/sail": "^1.0.1",

@@ -31,7 +31,8 @@ class JourneyEngine
 
         foreach ($activities as $index => $activity) {
             // Using time and date directly. Assumes no timezone complications for now.
-            $activityDatetime = Carbon::parse($activity->date->format('Y-m-d') . ' ' . $activity->time);
+            $dateStr = $activity->date instanceof \DateTimeInterface ? $activity->date->format('Y-m-d') : \Carbon\Carbon::parse($activity->date)->format('Y-m-d');
+            $activityDatetime = Carbon::parse($dateStr . ' ' . $activity->time);
             $journeyActivity = $journeyActivities->get($activity->id);
 
             // Create if it doesn't exist
@@ -92,6 +93,7 @@ class JourneyEngine
                 'status' => JourneyStatus::COMPLETED,
                 'ended_at' => Carbon::now(),
             ]);
+            $journey->trip->update(['status' => 'completed']);
             $journey->user->notify(new \App\Notifications\JourneyCompleted($journey));
         }
     }

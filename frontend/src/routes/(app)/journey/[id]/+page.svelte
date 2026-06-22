@@ -39,11 +39,11 @@
 </svelte:head>
 
 <div class="container max-w-3xl mx-auto py-8 px-4">
-  <div class="mb-8">
-    <h1 class="text-3xl font-bold text-gray-900 mb-2">
+  <div class="mb-8 border-b border-border/50 pb-4">
+    <h1 class="text-3xl font-bold text-white mb-2 uppercase tracking-wider">
       {journeyStore.activeJourney?.trip?.title}
     </h1>
-    <p class="text-gray-500">Live Journey Tracking</p>
+    <p class="text-sm font-mono text-muted-foreground tracking-widest uppercase">Live Journey Tracking</p>
   </div>
 
   {#if journeyStore.activeJourney?.status === 'completed'}
