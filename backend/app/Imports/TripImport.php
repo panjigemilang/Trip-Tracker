@@ -24,7 +24,12 @@ class TripImport implements ToCollection, WithHeadingRow
     public function collection(Collection $rows)
     {
         $validator = Validator::make($rows->toArray(), [
-            '*.date' => 'required|date',
+            '*.date' => [
+                'required',
+                'date',
+                'after_or_equal:' . $this->trip->start_date->toDateString(),
+                'before_or_equal:' . $this->trip->end_date->toDateString(),
+            ],
             '*.time' => 'required|date_format:H:i',
             '*.title' => 'required|string|max:255',
             '*.location' => 'nullable|string|max:500',

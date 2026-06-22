@@ -20,7 +20,7 @@ class TripImportController extends Controller
         ];
 
         $content = "date,time,title,location,notes\n";
-        $content .= "2026-08-01,14:00,Arrival at DPS,Ngurah Rai Airport,Meet driver at exit\n";
+        $content .= "2026-12-30,14:00,Jalan jalan,Jakarta,Meet driver at exit\n";
         
         return Response::make($content, 200, $headers);
     }

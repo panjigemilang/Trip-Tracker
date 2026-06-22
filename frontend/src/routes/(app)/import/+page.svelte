@@ -7,6 +7,8 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { FileSpreadsheet, UploadCloud, AlertTriangle, FileText } from 'lucide-svelte';
+  import ImportPreviewModal from '$lib/components/features/trips/ImportPreviewModal.svelte';
+  import Papa from 'papaparse';
 
   let trips = $state<any[]>([]);
   let selectedTripId = $state<string>('');
@@ -19,6 +21,10 @@
   
   let validationErrors = $state<any[]>([]);
   let hasAttemptedUpload = $state(false);
+
+  let isPreviewModalOpen = $state(false);
+  let parsedRows = $state<any[]>([]);
+  let currentSelectedTrip = $derived(trips.find(t => t.id === selectedTripId));
 
   onMount(async () => {
     try {
@@ -70,12 +76,31 @@
       return;
     }
 
+    if (selectedFile.name.endsWith('.csv') || selectedFile.type === 'text/csv') {
+      Papa.parse(selectedFile, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (results) => {
+          parsedRows = results.data;
+          isPreviewModalOpen = true;
+        },
+        error: (err) => {
+          toast.error('Failed to parse CSV file: ' + err.message);
+        }
+      });
+    } else {
+      // Direct execution for non-csv
+      executeUpload();
+    }
+  }
+
+  async function executeUpload() {
     isUploading = true;
     validationErrors = [];
     hasAttemptedUpload = true;
 
     const formData = new FormData();
-    formData.append('file', selectedFile);
+    formData.append('file', selectedFile!);
 
     try {
       const token = localStorage.getItem('auth_token');
@@ -301,3 +326,10 @@
     </section>
   {/if}
 </div>
+
+<ImportPreviewModal
+  bind:isOpen={isPreviewModalOpen}
+  rows={parsedRows}
+  trip={currentSelectedTrip}
+  onConfirm={executeUpload}
+/>

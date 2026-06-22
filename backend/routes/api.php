@@ -21,6 +21,8 @@ Route::post('/v1/auth/register', [AuthController::class, 'register']);
 Route::post('/v1/auth/login', [AuthController::class, 'login']);
 Route::get('/v1/auth/google/redirect', [AuthController::class, 'googleRedirect']);
 
+Route::get('/v1/trips/import/template', [App\Http\Controllers\Api\TripImportController::class, 'downloadTemplate']);
+
 Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::get('/auth/user', function (Request $request) {
@@ -40,7 +42,6 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     Route::patch('/journeys/{journey}/activities/{activity}', [App\Http\Controllers\Api\JourneyController::class, 'updateActivityStatus']);
 
     // Import Routes
-    Route::get('/trips/import/template', [App\Http\Controllers\Api\TripImportController::class, 'downloadTemplate']);
     Route::post('/trips/{trip}/import', [App\Http\Controllers\Api\TripImportController::class, 'import']);
 
     // History Routes
