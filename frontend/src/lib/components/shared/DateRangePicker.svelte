@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-svelte';
+  import { formatDate } from '$lib/utils/dateFormatter';
 
   let { 
     startDate = $bindable(''), 
@@ -42,14 +43,7 @@
   const todayStr = toISODateString(new Date());
 
   function formatDateFriendly(dateStr: string) {
-    if (!dateStr) return '';
-    const date = new Date(dateStr);
-    if (isNaN(date.getTime())) return '';
-    return date.toLocaleDateString(undefined, { 
-      month: 'short', 
-      day: 'numeric', 
-      year: 'numeric' 
-    });
+    return formatDate(dateStr);
   }
 
   let displayValue = $derived.by(() => {

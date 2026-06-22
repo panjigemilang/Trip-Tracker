@@ -7,6 +7,7 @@
   import { Button } from '$lib/components/ui/button';
   import { toast } from 'svelte-sonner';
   import { goto } from '$app/navigation';
+  import { formatDate, formatTime } from '$lib/utils/dateFormatter';
   import { 
     MapPin, 
     Navigation, 
@@ -110,18 +111,7 @@
     return 'https://images.unsplash.com/photo-1542931287-023b922fa89b?q=80&w=1200';
   }
 
-  function formatDate(dStr: string) {
-    if (!dStr) return '';
-    return new Date(dStr).toLocaleDateString(undefined, { 
-      month: 'short', 
-      day: 'numeric' 
-    }).toUpperCase();
-  }
 
-  function formatTime(tStr: string) {
-    if (!tStr) return '';
-    return tStr.substring(0, 5);
-  }
 
   // Reactive derived values
   let activities = $derived(journey?.trip?.activities || []);

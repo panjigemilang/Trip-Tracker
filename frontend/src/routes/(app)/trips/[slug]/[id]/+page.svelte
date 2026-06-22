@@ -23,6 +23,7 @@
   } from 'lucide-svelte';
   import { goto } from '$app/navigation';
   import { toast } from 'svelte-sonner';
+  import { formatDate, formatTime } from '$lib/utils/dateFormatter';
 
   let { data } = $props<{ data: { trip: any } }>();
   let trip = $state(data.trip);
@@ -57,16 +58,7 @@
     isGalleryOpen = true;
   }
 
-  // Format date helper
-  function formatDate(dStr: string) {
-    if (!dStr) return '';
-    return new Date(dStr).toLocaleDateString(undefined, { 
-      weekday: 'short', 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
-    });
-  }
+
 
   // Get image URL
   function getMediaUrl(path: string) {
@@ -265,7 +257,7 @@
                         <Calendar class="h-3 w-3" /> {formatDate(act.date)}
                       </span>
                       <span class="flex items-center gap-1">
-                        <Clock class="h-3 w-3" /> {act.time.substring(0, 5)}
+                        <Clock class="h-3 w-3" /> {formatTime(act.time)}
                       </span>
                     </div>
                   </div>

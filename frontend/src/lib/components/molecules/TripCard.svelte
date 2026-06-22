@@ -3,6 +3,7 @@
     import { MapPin, CalendarDays, ArrowRight } from 'lucide-svelte';
     import StatusBadge from '$lib/components/atoms/StatusBadge.svelte';
     import { Button } from '$lib/components/ui/button';
+    import { formatDate } from '$lib/utils/dateFormatter';
 
     let { trip, class: className = '' } = $props();
 </script>
@@ -22,7 +23,7 @@
             {#if trip.start_date && trip.end_date}
                 <div class="flex items-center gap-2">
                     <CalendarDays class="w-4 h-4" />
-                    <span>{trip.start_date} to {trip.end_date}</span>
+                    <span>{formatDate(trip.start_date)} — {formatDate(trip.end_date)}</span>
                 </div>
             {:else}
                 <div class="flex items-center gap-2 italic">

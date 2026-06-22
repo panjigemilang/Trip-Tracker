@@ -7,6 +7,7 @@
   import { onMount } from 'svelte';
   import { api } from '$lib/services/api/client';
   import { toast } from 'svelte-sonner';
+  import { formatDate } from '$lib/utils/dateFormatter';
 
   let histories = $state<any[]>([]);
   let isLoading = $state(true);
@@ -80,13 +81,7 @@
     return 'https://images.unsplash.com/photo-1542931287-023b922fa89b?q=80&w=400';
   }
 
-  function formatDate(dStr: string) {
-    if (!dStr) return '';
-    return new Date(dStr).toLocaleDateString(undefined, { 
-      month: 'short', 
-      day: 'numeric' 
-    }).toUpperCase();
-  }
+
 </script>
 
 <svelte:head>
