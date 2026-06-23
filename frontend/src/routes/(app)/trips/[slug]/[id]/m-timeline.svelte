@@ -59,7 +59,7 @@
         <div class="flex-1 min-w-0">
           {#if isCompleted}
             <div class="flex items-center justify-between mb-1.5 mt-0.5">
-              <span class="text-[12px] font-mono text-muted-foreground/80"><span class="text-white">{formatDate(act.date)}</span> • {formatTime(act.time)}</span>
+              <span class="text-[12px] font-mono text-muted-foreground/80"><span class="text-secondary">{formatDate(act.date)}</span> • {formatTime(act.time)}</span>
               <span class="text-[8px] border border-primary/30 text-primary px-2 py-0.5 rounded-sm uppercase tracking-widest font-bold bg-primary/10">COMPLETED</span>
             </div>
             <h3 class="text-[16px] font-bold text-white mb-1.5">{act.title}</h3>
@@ -69,7 +69,7 @@
           {:else if isActive}
             <CyberCard class="p-4 border-secondary/50 bg-[#11131A] relative shadow-[0_0_15px_rgba(0,230,184,0.1)] rounded-xl">
               <div class="flex items-center justify-between mb-3">
-                <span class="text-[12px] font-mono text-secondary font-bold"><span class="text-white">{formatDate(act.date)}</span> • {formatTime(act.time)}</span>
+                <span class="text-[12px] font-mono text-secondary font-bold"><span class="text-secondary">{formatDate(act.date)}</span> • {formatTime(act.time)}</span>
                 <span class="text-[9px] border border-secondary text-secondary px-2 py-0.5 rounded-sm uppercase tracking-widest font-bold">ACTIVE</span>
               </div>
               <h3 class="text-[17px] font-bold text-white mb-2">{act.title}</h3>
@@ -79,7 +79,7 @@
             </CyberCard>
           {:else}
             <div class="flex items-center justify-between mb-1.5 mt-0.5">
-              <span class="text-[12px] font-mono text-muted-foreground/50"><span class="text-white/70">{formatDate(act.date)}</span> • {formatTime(act.time)}</span>
+              <span class="text-[12px] font-mono text-muted-foreground/50"><span class="text-secondary">{formatDate(act.date)}</span> • {formatTime(act.time)}</span>
               <span class="text-[8px] border border-muted-foreground/20 text-muted-foreground/60 px-2 py-0.5 rounded-sm uppercase tracking-widest font-bold bg-muted-foreground/5">UPCOMING</span>
             </div>
             <h3 class="text-[16px] font-bold text-white/70 mb-1.5">{act.title}</h3>
