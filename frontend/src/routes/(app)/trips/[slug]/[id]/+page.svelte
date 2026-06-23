@@ -10,6 +10,9 @@
   import DatePicker from '$lib/components/shared/DatePicker.svelte';
   import TimePicker from '$lib/components/shared/TimePicker.svelte';
   import ImageGallery from '$lib/components/shared/ImageGallery.svelte';
+  import MHeader from './m-header.svelte';
+  import MTimeline from './m-timeline.svelte';
+  import MCreateDrawer from './m-create-drawer.svelte';
   import { 
     Calendar,
     Clock, 
@@ -248,79 +251,7 @@
   {/if}
 
   <!-- Mobile Layout Header & Floating Card -->
-  <div class="md:hidden w-screen relative left-1/2 -translate-x-1/2 pb-6 -mt-6">
-    <!-- Top Nav -->
-    <div class="absolute top-0 inset-x-0 z-20 flex items-center justify-between p-4 bg-linear-to-b from-[#0B0C10] to-transparent">
-      <div class="flex items-center gap-4">
-        <a href="/trips" class="text-white hover:text-white/80 transition-colors bg-black/20 p-2 rounded-full backdrop-blur-md">
-          <ArrowLeft class="h-5 w-5" />
-        </a>
-        <NeonText class="text-lg font-bold tracking-widest uppercase truncate max-w-45">{trip.title}</NeonText>
-      </div>
-      <div class="flex items-center gap-3">
-        <button aria-label="Notifications" class="text-white hover:text-white/80 transition-colors bg-black/20 p-2 rounded-full backdrop-blur-md">
-          <Bell class="size-4.5" />
-        </button>
-      </div>
-    </div>
-
-    <!-- Hero Image -->
-    <div class="w-full h-64 relative">
-      <img src={getTripImage(trip)} alt={trip.title} class="w-full h-full object-cover grayscale opacity-80" />
-      <div class="absolute inset-0 bg-linear-to-t from-[#0B0C10] via-transparent to-[#0B0C10]/30"></div>
-      
-      <!-- Pill -->
-      <div class="absolute bottom-16 left-4 z-10">
-        <span class="bg-[#2A0818] border border-primary text-primary px-3 py-1 rounded-full text-[9px] uppercase tracking-widest font-bold">
-          {#if trip.status === 'active' || trip.journey_id}ACTIVE EXPEDITION{:else}{trip.status}{/if}
-        </span>
-      </div>
-    </div>
-
-    <!-- Floating Card -->
-    <CyberCard class="mx-4 -mt-12 relative z-10 p-5 bg-[#11131A] border-border/50 shadow-[0_10px_30px_rgba(0,0,0,0.5)] rounded-2xl">
-      <div class="flex items-start justify-between mb-2">
-        <h2 class="text-2xl font-bold tracking-wide text-white">{trip.title}</h2>
-        <div class="h-10 w-10 shrink-0 bg-secondary/10 border border-secondary/30 rounded-xl flex items-center justify-center text-secondary">
-          <MapPin class="h-5 w-5" />
-        </div>
-      </div>
-      
-      <p class="text-[13px] text-secondary font-medium tracking-wide mb-4">
-        {#if trip.start_date}
-          {formatDate(trip.start_date)} {#if trip.end_date} — {formatDate(trip.end_date)}{/if}
-        {:else}
-          Dates TBD
-        {/if}
-      </p>
-
-      {#if trip.description}
-        <p class="text-[13px] text-muted-foreground leading-relaxed mb-6">
-          {trip.description}
-        </p>
-      {/if}
-
-      <div class="flex items-center justify-between font-mono text-[10px] uppercase tracking-widest mb-2">
-        <span class="text-muted-foreground">PROGRESS</span>
-        <span class="text-muted-foreground">ACTIVITIES</span>
-      </div>
-      {#if trip.journey_id || trip.journey}
-        <div class="flex items-center gap-4">
-          <div class="flex-1 h-2 bg-[#16171E] rounded-full overflow-hidden">
-            <div class="h-full bg-primary shadow-[0_0_8px_rgba(255,42,122,0.8)]" style="width: {progressPercentage}%"></div>
-          </div>
-          <div class="shrink-0 text-xs font-bold font-mono">
-            <span class="text-yellow-500">{totalActivities} FOUND</span>
-          </div>
-        </div>
-      {:else}
-        <div class="flex items-center justify-between gap-4">
-          <span class="text-xs text-muted-foreground italic">Telemetry offline. Start journey to track progress.</span>
-          <span class="bg-amber-500/10 border border-amber-500/30 text-amber-500 px-2 py-0.5 rounded text-[8px] uppercase tracking-widest font-bold font-mono">Not Started</span>
-        </div>
-      {/if}
-    </CyberCard>
-  </div>
+  <MHeader {trip} {getTripImage} {progressPercentage} {totalActivities} />
 
   <div class="grid grid-cols-1 md:grid-cols-[1fr_400px] gap-8 items-start">
     <!-- Left Column: Activity List / Timeline -->
@@ -343,14 +274,8 @@
         {/if}
       </div>
 
-      <!-- Mobile Header -->
-      <div class="md:hidden flex items-center gap-4 mt-2 mb-2">
-        <div class="w-8 h-px bg-primary/60"></div>
-        <h2 class="text-[11px] font-bold tracking-[0.2em] uppercase text-white">Sequence Timeline</h2>
-      </div>
-
       {#if !trip.activities || trip.activities.length === 0}
-        <div class="text-center py-16 bg-slate-950/10 border border-dashed border-border rounded-xl">
+        <div class="hidden md:block text-center py-16 bg-slate-950/10 border border-dashed border-border rounded-xl">
           <p class="text-sm text-muted-foreground mb-4">No active checkpoints scheduled for this route.</p>
           <Button onclick={() => { isFormOpen = true; }} variant="outline" class="border-secondary text-secondary hover:bg-secondary/10">
             Initialize First Segment
@@ -409,96 +334,9 @@
             </div>
           {/each}
         </div>
-        
-        <!-- Mobile Timeline -->
-        <div class="md:hidden relative space-y-6">
-          <div class="absolute left-5 top-4 bottom-4 w-px bg-[#1F2937] z-0"></div>
-          {#each trip.activities as act, i}
-            {@const journeyAct = trip.journey?.activities?.find((a: any) => a.id === act.id)}
-            {@const status = journeyAct?.status || 'upcoming'}
-            {@const isCompleted = status === 'completed'}
-            {@const isActive = status === 'current'}
-            {@const isUpcoming = status === 'upcoming' || status === 'skipped' || status === 'cancelled'}
-            
-            <div class="flex gap-4 relative z-10">
-              <div class="flex flex-col items-center shrink-0 w-10">
-                {#if isCompleted}
-                  <div class="h-10 w-10 rounded-xl border-[1.5px] border-primary bg-[#0B0C10] flex items-center justify-center relative mt-1">
-                    <Check class="h-4 w-4" stroke="var(--color-neon-pink)" strokeWidth={3} />
-                  </div>
-                  {#if i !== trip.activities.length - 1}
-                    <div class="absolute top-11 left-1/2 -translate-x-1/2 -bottom-6 w-px bg-primary shadow-[0_0_8px_rgba(255,42,122,0.6)] z-[-1]"></div>
-                  {/if}
-                {:else if isActive}
-                  <div class="h-10 w-10 rounded-xl border-[1.5px] border-secondary bg-[#0B0C10] flex items-center justify-center relative mt-1 shadow-[0_0_12px_rgba(0,230,184,0.4)]">
-                    <Loader class="h-4 w-4" stroke="var(--color-neon-cyan)" strokeWidth={2} />
-                  </div>
-                  {#if i !== trip.activities.length - 1}
-                    <div class="absolute top-11 left-1/2 -translate-x-1/2 -bottom-6 w-px bg-secondary shadow-[0_0_8px_rgba(0,230,184,0.6)] z-[-1]"></div>
-                  {/if}
-                {:else}
-                  <div class="h-10 w-10 rounded-full border border-muted-foreground/30 bg-[#16171E] flex items-center justify-center text-muted-foreground/40 relative mt-1">
-                    <Clock class="h-4 w-4" />
-                  </div>
-                {/if}
-              </div>
-
-              <div class="flex-1 min-w-0">
-                {#if isCompleted}
-                  <div class="flex items-center justify-between mb-1.5 mt-0.5">
-                    <span class="text-[12px] font-mono text-muted-foreground/80"><span class="text-white">{formatDate(act.date)}</span> • {formatTime(act.time)}</span>
-                    <span class="text-[8px] border border-primary/30 text-primary px-2 py-0.5 rounded-sm uppercase tracking-widest font-bold bg-primary/10">COMPLETED</span>
-                  </div>
-                  <h3 class="text-[16px] font-bold text-white mb-1.5">{act.title}</h3>
-                  {#if act.notes || act.location}
-                    <p class="text-[12px] text-muted-foreground leading-relaxed italic">{act.notes || `Activity at ${act.location}`}</p>
-                  {/if}
-                {:else if isActive}
-                  <CyberCard class="p-4 border-secondary/50 bg-[#11131A] relative shadow-[0_0_15px_rgba(0,230,184,0.1)] rounded-xl">
-                    <div class="flex items-center justify-between mb-3">
-                      <span class="text-[12px] font-mono text-secondary font-bold"><span class="text-white">{formatDate(act.date)}</span> • {formatTime(act.time)}</span>
-                      <span class="text-[9px] border border-secondary text-secondary px-2 py-0.5 rounded-sm uppercase tracking-widest font-bold">ACTIVE</span>
-                    </div>
-                    <h3 class="text-[17px] font-bold text-white mb-2">{act.title}</h3>
-                    {#if act.notes || act.location}
-                      <p class="text-[12px] text-muted-foreground leading-relaxed">{act.notes || `Infiltrating data node at ${act.location}.`}</p>
-                    {/if}
-                  </CyberCard>
-                {:else}
-                  <div class="flex items-center justify-between mb-1.5 mt-0.5">
-                    <span class="text-[12px] font-mono text-muted-foreground/50"><span class="text-white/70">{formatDate(act.date)}</span> • {formatTime(act.time)}</span>
-                    <span class="text-[8px] border border-muted-foreground/20 text-muted-foreground/60 px-2 py-0.5 rounded-sm uppercase tracking-widest font-bold bg-muted-foreground/5">UPCOMING</span>
-                  </div>
-                  <h3 class="text-[16px] font-bold text-white/70 mb-1.5">{act.title}</h3>
-                  {#if act.notes || act.location}
-                    <p class="text-[12px] text-muted-foreground/60 leading-relaxed line-clamp-2">{act.notes || `Location: ${act.location}`}</p>
-                  {/if}
-                {/if}
-              </div>
-            </div>
-          {/each}
-          
-          <!-- Add new segment button at the bottom for mobile -->
-          <div class="flex gap-4 mt-6">
-            <div class="w-10 shrink-0 flex justify-center">
-              <div class="h-10 w-10 rounded-full border border-dashed border-muted-foreground/40 bg-transparent flex items-center justify-center text-muted-foreground/50">
-                <Plus class="h-4 w-4" />
-              </div>
-            </div>
-            <div class="flex-1 min-w-0 flex items-center">
-              <Button
-                variant="outline"
-                size="lg"
-                onclick={() => { isFormOpen = true; }}
-                class="w-full text-left p-4 border border-dashed border-muted-foreground/30 rounded-xl hover:bg-white/5 transition-colors group flex justify-between items-center"
-              >
-                <span class="text-xs font-bold uppercase tracking-widest text-muted-foreground group-hover:text-white transition-colors">Add New Segment</span>
-                <Plus class="h-4 w-4 text-muted-foreground group-hover:text-white transition-colors" />
-              </Button>
-            </div>
-          </div>
-        </div>
       {/if}
+
+      <MTimeline {trip} bind:isFormOpen />
     </div>
 
     <!-- Right Column: Add Segment Form -->
@@ -524,48 +362,9 @@
   </div>
 
   <!-- Mobile Create Activity Drawer -->
-  {#if isFormOpen}
-    <div class="md:hidden fixed inset-0 z-100 w-full h-dvh">
-      <!-- Backdrop -->
-      <!-- svelte-ignore a11y_click_events_have_key_events -->
-      <!-- svelte-ignore a11y_no_static_element_interactions -->
-      <div 
-        class="absolute inset-0 bg-[#0B0C10]/80 backdrop-blur-sm" 
-        transition:fade={{ duration: 200 }} 
-        onclick={() => { isFormOpen = false; }}
-      ></div>
-      
-      <!-- Drawer Content -->
-      <div 
-        class="absolute inset-x-0 bottom-0 top-12 bg-[#06080E] flex flex-col overflow-y-auto rounded-t-2xl shadow-[0_-10px_40px_rgba(255,42,122,0.15)] border-t border-border/50"
-        transition:fly={{ y: '100%', duration: 300, easing: cubicOut }}
-      >
-        <header class="flex items-center justify-between p-4 border-b border-border/20 sticky top-0 bg-[#06080E]/90 backdrop-blur z-10 rounded-t-2xl">
-          <button onclick={() => { isFormOpen = false; }} class="text-muted-foreground hover:text-white transition-colors p-2 -ml-2">
-            <ArrowLeft class="h-5 w-5" />
-          </button>
-          <NeonText class="text-sm font-bold tracking-widest uppercase text-secondary">NEW SEQUENCE</NeonText>
-          <div class="w-9 h-9"></div>
-        </header>
-
-        <div class="flex-1 p-6 flex flex-col gap-6">
-          <div>
-            <h1 class="text-3xl font-bold tracking-widest text-white font-heading uppercase">Add Segment</h1>
-            <p class="text-xs text-muted-foreground mt-2">Input telemetry data for your next journey.</p>
-          </div>
-          
-          {#if error}
-            <div class="p-3 border border-red-500/30 bg-red-500/5 text-red-500 text-xs rounded-lg flex items-start gap-2">
-              <AlertCircle class="h-4 w-4 shrink-0 mt-0.5" />
-              <span>{error}</span>
-            </div>
-          {/if}
-          
-          {@render activityFormBody()}
-        </div>
-      </div>
-    </div>
-  {/if}
+  <MCreateDrawer bind:isFormOpen {error}>
+    {@render activityFormBody()}
+  </MCreateDrawer>
 
   <ImageGallery bind:isOpen={isGalleryOpen} images={galleryImages} bind:currentIndex={galleryIndex} />
 </div>
