@@ -29,7 +29,7 @@
 </script>
 
 <CyberCard
-  class="overflow-hidden p-0 relative border-border/50 transition-transform hover:scale-[1.02]"
+  class="overflow-hidden p-0 relative border-border/50 transition-transform duration-300 hover:scale-[1.02] active:scale-[0.97] active:duration-150"
 >
   <div class="h-40 w-full relative">
     <div
@@ -56,17 +56,20 @@
     </div>
 
     {#if status !== "completed" && status !== "cancelled" && status !== "active" && daysLeft !== null && daysLeft >= 0}
+    <div class="flex items-center">
+      <div class="size-5"></div>
       <span
-        class="text-primary flex justify-self-end font-mono text-[10px] uppercase tracking-widest bg-primary/10 px-2 py-0.5 rounded-sm border border-primary/20 shrink-0"
+        class="text-primary font-mono text-[10px] uppercase tracking-widest bg-primary/10 px-2 py-0.5 rounded-sm border border-primary/20 shrink-0"
       >
         {#if daysLeft === 0}
           Starts Today
         {:else if daysLeft === 1}
           1 Day Left
         {:else}
-          {daysLeft} Days Left
+        {daysLeft} Days Left
         {/if}
       </span>
-    {/if}
+    </div>
+      {/if}
   </div>
 </CyberCard>

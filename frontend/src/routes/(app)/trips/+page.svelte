@@ -7,6 +7,8 @@
   import { onMount } from 'svelte';
   import { Plus } from 'lucide-svelte';
   import { getDisplayStatus } from '$lib/utils/tripStatus';
+  import { fade, fly } from 'svelte/transition';
+  import { flip } from 'svelte/animate';
 
   let trips = $state<any[]>([]);
   let isLoading = $state(true);
@@ -55,9 +57,6 @@
       <NeonText class="text-3xl tracking-widest block mb-1">My Trips</NeonText>
       <p class="text-sm text-muted-foreground">Manage your upcoming trips.</p>
     </div>
-    <Button href="/trips/create" size="sm" class="bg-primary text-primary-foreground hover:bg-primary/80 shadow-[0_0_10px_rgba(255,42,122,0.4)]">
-      <Plus class="h-4 w-4 mr-1" /> CREATE
-    </Button>
   </header>
 
   <!-- Desktop Header -->
@@ -115,7 +114,7 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
         {#if activeTrip}
           <!-- Mobile only shows the active trip as a standard card at the top -->
           <div class="md:hidden">
@@ -128,8 +127,13 @@
           </div>
         {/if}
 
-        {#each otherTrips as trip}
-          <a href="/trips/{trip.slug || 'trip'}/{trip.id}" class="block">
+        {#each otherTrips as trip, i (trip.id)}
+          <a 
+            href="/trips/{trip.slug || 'trip'}/{trip.id}" 
+            class="block"
+            in:fly={{ y: 20, duration: 400, delay: i * 50 }}
+            animate:flip={{ duration: 300 }}
+          >
             <StandardTripCard 
               trip={trip}
               imageSrc={getImageUrl(trip, 600)}

@@ -27,11 +27,11 @@ Never bypass the type system.
 
 ## Always
 
-* Create explicit interfaces
-* Create explicit types
-* Create enums when appropriate
-* Use discriminated unions when needed
-* Infer types from schemas where possible
+- Create explicit interfaces
+- Create explicit types
+- Create enums when appropriate
+- Use discriminated unions when needed
+- Infer types from schemas where possible
 
 Example:
 
@@ -80,13 +80,13 @@ Always provide typed generics.
 Example:
 
 ```ts
-Table<Trip>
+Table<Trip>;
 ```
 
 instead of:
 
 ```ts
-Table<any>
+Table<any>;
 ```
 
 ---
@@ -132,11 +132,11 @@ TripFilters.svelte
 
 If a component exceeds:
 
-* 200 lines
+- 200 lines
 
 or
 
-* multiple responsibilities
+- multiple responsibilities
 
 extract components.
 
@@ -174,18 +174,18 @@ Do not create custom UI components when shadcn already provides them.
 
 ## Prefer
 
-* Button
-* Card
-* Dialog
-* Drawer
-* Dropdown Menu
-* Form
-* Input
-* Select
-* Tabs
-* Tooltip
-* Sheet
-* Table
+- Button
+- Card
+- Dialog
+- Drawer
+- Dropdown Menu
+- Form
+- Input
+- Select
+- Tabs
+- Tooltip
+- Sheet
+- Table
 
 from shadcn-svelte.
 
@@ -201,10 +201,10 @@ Tailwind + shadcn
 
 Do not introduce:
 
-* Bootstrap
-* Material UI
-* DaisyUI
-* Flowbite
+- Bootstrap
+- Material UI
+- DaisyUI
+- Flowbite
 
 unless explicitly requested.
 
@@ -214,11 +214,11 @@ unless explicitly requested.
 
 Maintain consistent:
 
-* Radius
-* Spacing
-* Typography
-* Colors
-* Shadows
+- Radius
+- Spacing
+- Typography
+- Colors
+- Shadows
 
 across all screens.
 
@@ -268,9 +268,9 @@ features/trips/services/
 Example:
 
 ```ts
-trip-status.service.ts
-trip-validation.service.ts
-trip-import.service.ts
+trip - status.service.ts;
+trip - validation.service.ts;
+trip - import.service.ts;
 ```
 
 ---
@@ -286,9 +286,9 @@ services/api/
 Example:
 
 ```ts
-trip-api.ts
-journey-api.ts
-history-api.ts
+trip - api.ts;
+journey - api.ts;
+history - api.ts;
 ```
 
 ---
@@ -362,9 +362,9 @@ Do not copy-paste implementations.
 Always use:
 
 ```ts
-$state()
-$derived()
-$effect()
+$state();
+$derived();
+$effect();
 ```
 
 when appropriate.
@@ -377,13 +377,14 @@ Avoid legacy Svelte patterns unless required.
 
 Verify:
 
-* No any types
-* No duplicated logic
-* No bloated components
-* Uses shadcn-svelte
-* Business logic extracted
-* Proper folder placement
-* Fully typed APIs
-* Fully typed stores
+- No any types
+- No duplicated logic
+- No bloated components
+- Uses shadcn-svelte
+- Business logic extracted
+- Proper folder placement
+- Fully typed APIs
+- Fully typed stores
+- Iconography: Always use Lucide icons (`lucide-svelte`) instead of custom/inline `<svg>` elements in the frontend files.
 
 If any item fails, refactor before completion.

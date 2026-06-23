@@ -7,7 +7,20 @@
   import { Button } from '$lib/components/ui/button';
   import { toast } from 'svelte-sonner';
   import { goto } from '$app/navigation';
-  import { formatDate, formatTime } from '$lib/utils/dateFormatter';
+  import { formatDate, formatTime, parseLocalDate } from '$lib/utils/dateFormatter';
+
+  function isToday(dateStr: string | null | undefined): boolean {
+    if (!dateStr) return false;
+    try {
+      const date = parseLocalDate(dateStr);
+      const today = new Date();
+      return date.getFullYear() === today.getFullYear() &&
+             date.getMonth() === today.getMonth() &&
+             date.getDate() === today.getDate();
+    } catch (e) {
+      return false;
+    }
+  }
   import { 
     MapPin, 
     Navigation, 
@@ -42,8 +55,34 @@
           journey = null;
         }
       } else {
-        activeTrip = null;
-        journey = null;
+        // If no active trip, check if there is an upcoming trip that starts today
+        const allTripsRes = await api.get<{ data: any[] }>('/trips');
+        const allTrips = allTripsRes.data || [];
+        
+        const todayTrip = allTrips.find((t: any) => {
+          if (t.status === 'completed' || t.status === 'cancelled') return false;
+          return isToday(t.start_date);
+        });
+
+        if (todayTrip) {
+          if (todayTrip.journey_id) {
+            const journeyRes = await api.get<{ data: any }>(`/journeys/${todayTrip.journey_id}`);
+            journey = journeyRes.data;
+            journeyStore.activeJourney = journey;
+            activeTrip = todayTrip;
+          } else {
+            const newJourney = await journeyStore.startJourney(todayTrip.id);
+            journey = newJourney;
+            journeyStore.activeJourney = newJourney;
+            
+            const tripRes = await api.get<any>(`/trips/${todayTrip.id}`);
+            activeTrip = tripRes.data;
+            toast.success(`Journey '${activeTrip.title}' automatically initialized for today.`);
+          }
+        } else {
+          activeTrip = null;
+          journey = null;
+        }
       }
     } catch (e) {
       console.error('Failed to load active tracking coordinates:', e);
@@ -90,10 +129,10 @@
   async function handleUpdateStatus(activityId: string, status: string) {
     try {
       await journeyStore.updateActivityStatus(activityId, status as any);
-      toast.success(`Segment status updated.`);
+      toast.success(`Activity status updated.`);
       await loadActiveJourney();
     } catch (e: any) {
-      toast.error('Failed to execute segment status update.');
+      toast.error('Failed to execute activity status update.');
     }
   }
 
@@ -163,15 +202,12 @@
     </div>
   {:else if !journey}
     <!-- Empty State -->
-    <div class="flex-grow flex flex-col items-center justify-center p-8 text-center max-w-lg mx-auto py-16">
+    <div class="grow flex flex-col items-center justify-center p-8 text-center max-w-lg mx-auto py-16">
       <div class="w-16 h-16 rounded-full border border-dashed border-primary/40 bg-primary/5 flex items-center justify-center mb-6 animate-pulse">
         <Navigation class="w-8 h-8 text-primary" />
       </div>
       <h2 class="text-xl font-bold tracking-widest text-white uppercase mb-2 font-heading">NO ACTIVE EXPEDITION SIGNAL</h2>
       <p class="text-sm text-muted-foreground mb-8">Establish a journey coordinates sequence from your Trips sector to initialize live telemetry and track routing metrics.</p>
-      <Button onclick={() => goto('/trips')} class="bg-primary text-primary-foreground hover:bg-primary/80 font-bold uppercase tracking-widest px-8">
-        INITIALIZE TELEMETRY
-      </Button>
     </div>
   {:else}
     <!-- Live Tracking Banner if completed -->
@@ -186,7 +222,7 @@
     <header class="flex flex-col gap-2 border-b border-border/50 pb-6">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-4">
-          <div class="w-1 h-6 bg-secondary"></div>
+          <div class="hidden md:block w-1 h-6 bg-secondary"></div>
           <div>
             <h2 class="text-xs font-bold tracking-widest text-secondary font-mono uppercase mb-0.5">
               DAY {dayCount} • {activeTrip.location || 'EXPEDITION TELEMETRY'}
@@ -206,7 +242,7 @@
 
     <!-- Content Layout -->
     <div class="flex flex-col md:flex-row gap-8 items-start">
-      <!-- Left Column: Route segments (Desktop only) -->
+      <!-- Left Column: Route activities (Desktop only) -->
       <div class="hidden md:flex flex-col gap-6 w-80 shrink-0 border-r border-border/50 pr-6">
         <div class="flex items-center gap-2 mb-4">
           <div class="w-1 h-5 bg-secondary"></div>
@@ -314,7 +350,7 @@
               </div>
               <textarea 
                 bind:value={observations}
-                placeholder="Input active segment observations and tactical logs..." 
+                placeholder="Input active activity observations and tactical logs..." 
                 class="flex-1 min-h-32 rounded-lg border border-border bg-card/50 px-3 py-2 text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary focus-visible:shadow-[0_0_10px_rgba(255,42,122,0.3)] transition-all resize-none font-mono"
               ></textarea>
               <div class="flex gap-2">
@@ -326,7 +362,7 @@
             <!-- Controls Card -->
             <CyberCard class="flex flex-col justify-center gap-4 border-dashed border-border bg-transparent p-6 h-full">
               <p class="text-[10px] text-muted-foreground font-mono leading-relaxed text-center mb-1">
-                System is currently tracking this segment in high-fidelity mode. Mark complete to advance routing coordinates sequence.
+                System is currently tracking this activity in high-fidelity mode. Mark complete to advance routing coordinates sequence.
               </p>
               
               <div class="flex flex-col gap-2">
@@ -334,7 +370,7 @@
                   onclick={() => handleUpdateStatus(currentActivity.id, 'completed')}
                   class="w-full h-11 bg-secondary text-secondary-foreground hover:bg-secondary/80 font-bold uppercase tracking-widest font-mono"
                 >
-                  ✓ Complete Segment
+                  ✓ Complete Activity
                 </Button>
                 
                 <div class="flex gap-2">
@@ -361,39 +397,39 @@
 
       <!-- Mobile Timeline & Embedded Controls layout -->
       <div class="md:hidden w-full flex flex-col gap-6">
-        <div class="relative">
+        <div class="relative pl-[2px]">
           <!-- Vertical timeline line -->
-          <div class="absolute left-4.5 top-4 bottom-4 w-px bg-pink-500/40 z-0"></div>
+          <div class="absolute left-[21px] top-4 bottom-4 w-px bg-primary z-0 shadow-[0_0_8px_rgba(255,42,122,0.6)]"></div>
           
-          <div class="space-y-6 relative z-10">
+          <div class="space-y-8 relative z-10">
             {#each activities as activity}
               {@const status = getActivityStatus(activity.id)}
               {@const isCurrent = status === 'current'}
               {@const isPast = status === 'completed' || status === 'skipped' || status === 'cancelled' || status === 'missed'}
               
-              <div class="flex gap-4">
+              <div class="flex gap-5">
                 <!-- Left side timeline column -->
-                <div class="flex flex-col items-center shrink-0">
+                <div class="flex flex-col items-center shrink-0 w-10">
                   <!-- Dot icon -->
                   {#if isCurrent}
-                    <div class="h-9 w-9 rounded-full border-2 border-primary bg-[#0D050A] flex items-center justify-center shadow-[0_0_12px_rgba(255,42,122,0.8)] animate-pulse">
-                      <Clock class="h-4 w-4 text-primary" />
+                    <div class="h-10 w-10 rounded-[10px] border-2 border-primary bg-background flex items-center justify-center shadow-[0_0_12px_rgba(255,42,122,0.8)] z-10 relative mt-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-neon-pink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
                     </div>
-                    <span class="text-[9px] font-bold text-primary font-mono tracking-widest mt-1.5 animate-pulse">
+                    <span class="text-[11px] font-bold text-primary font-mono tracking-widest mt-2">
                       {formatTime(activity.time)}
                     </span>
                   {:else if isPast}
-                    <div class="h-9 w-9 rounded-full border border-muted-foreground/30 bg-[#0B0C10] flex items-center justify-center text-muted-foreground/50">
-                      <CheckCircle class="h-4 w-4" />
+                    <div class="h-10 w-10 rounded-full border border-dashed border-muted-foreground/30 bg-background flex items-center justify-center text-muted-foreground/50 z-10 relative mt-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
                     </div>
-                    <span class="text-[9px] text-muted-foreground/70 font-mono tracking-widest mt-1.5">
+                    <span class="text-[11px] text-muted-foreground/70 font-mono tracking-widest mt-2">
                       {formatTime(activity.time)}
                     </span>
                   {:else}
-                    <div class="h-9 w-9 rounded-full border border-border bg-[#0B0C10] flex items-center justify-center text-muted-foreground/30">
-                      <Clock class="h-4 w-4" />
+                    <div class="h-10 w-10 rounded-full border border-muted-foreground/30 bg-background flex items-center justify-center text-muted-foreground/30 z-10 relative mt-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                     </div>
-                    <span class="text-[9px] text-muted-foreground/50 font-mono tracking-widest mt-1.5">
+                    <span class="text-[11px] text-white font-mono tracking-widest mt-2">
                       {formatTime(activity.time)}
                     </span>
                   {/if}
@@ -403,70 +439,78 @@
                 <div class="flex-1 min-w-0">
                   {#if isCurrent}
                     <!-- Active Card styled with pink neon border and controls -->
-                    <CyberCard class="p-5 border-primary/60 bg-linear-to-b from-primary/5 to-transparent relative overflow-hidden" glowState="primary">
-                      <div class="flex items-center justify-between mb-3 font-mono">
-                        <span class="text-[8px] bg-primary/10 border border-primary/30 text-primary px-2 py-0.5 rounded-sm uppercase tracking-widest font-bold">
-                          • TRACKING
+                    <CyberCard class="p-4 border-primary bg-[#0B0C10] relative overflow-hidden shadow-[0_0_15px_rgba(255,42,122,0.15)] rounded-[12px]" glowState="primary">
+                      <div class="flex items-center justify-between mb-4 font-mono">
+                        <span class="text-[9px] bg-primary/20 text-primary px-2.5 py-1 rounded-sm uppercase tracking-widest font-bold flex items-center gap-1.5">
+                          <div class="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></div> TRACKING
                         </span>
-                        <span class="text-[10px] text-secondary font-bold tracking-widest bg-secondary/10 px-2 py-0.5 rounded-sm">
+                        <span class="text-[10px] text-blue-400 font-bold tracking-widest bg-blue-500/10 border border-blue-500/30 px-2.5 py-1 rounded-sm">
                           {formatTime(activity.time)}
                         </span>
                       </div>
                       
-                      <h3 class="text-lg font-bold text-white tracking-wide mb-1 leading-snug">
+                      <h3 class="text-[17px] font-bold text-white tracking-wide mb-2 leading-snug">
                         {activity.title}
                       </h3>
                       
                       {#if activity.location}
-                        <p class="text-xs text-muted-foreground flex items-center gap-1 mb-4 font-mono">
-                          <MapPin class="w-3.5 h-3.5 text-secondary shrink-0" /> {activity.location}
+                        <p class="text-xs text-muted-foreground flex items-center gap-1 mb-5 font-mono">
+                          {activity.location}
                         </p>
                       {/if}
                       
                       {#if activity.notes}
-                        <div class="bg-card/60 border border-border/80 rounded-lg p-3 mb-5 font-mono text-[10px] leading-relaxed">
-                          <div class="text-secondary font-bold uppercase tracking-widest mb-1">NOTES</div>
-                          <p class="text-muted-foreground">{activity.notes}</p>
+                        <div class="bg-[#11131A] border border-secondary/20 rounded-lg p-3.5 mb-5 font-mono text-[10px] leading-relaxed">
+                          <div class="text-secondary font-bold uppercase tracking-widest mb-1.5">NOTES</div>
+                          <p class="text-muted-foreground/80">{activity.notes}</p>
                         </div>
                       {/if}
                       
                       <!-- Action controls -->
-                      <div class="flex flex-col gap-2 border-t border-border/50 pt-4 font-mono">
+                      <div class="flex gap-3 pt-1 font-mono">
                         <Button 
-                          onclick={() => handleUpdateStatus(activity.id, 'completed')}
-                          class="w-full h-10 bg-secondary text-secondary-foreground hover:bg-secondary/80 font-bold uppercase tracking-widest text-xs"
+                          onclick={() => handleUpdateStatus(activity.id, 'skipped')}
+                          variant="outline" 
+                          class="flex-1 h-11 bg-[#16171E] border-border text-white hover:text-white font-bold uppercase tracking-widest text-[11px] rounded-md"
                         >
-                          ✓ Complete Segment
+                          <SkipForward class="mr-1.5 h-3.5 w-3.5" /> SKIP
                         </Button>
-                        <div class="flex gap-2">
-                          <Button 
-                            onclick={() => handleUpdateStatus(activity.id, 'skipped')}
-                            variant="outline" 
-                            class="flex-1 h-9 border-border text-muted-foreground hover:text-white font-bold uppercase tracking-widest text-[10px]"
-                          >
-                            <SkipForward class="mr-1 h-3 w-3" /> Skip
-                          </Button>
-                          <Button 
-                            onclick={() => handleUpdateStatus(activity.id, 'cancelled')}
-                            variant="outline" 
-                            class="flex-1 h-9 border-red-500/30 text-red-500 hover:bg-red-500/10 hover:text-red-400 font-bold uppercase tracking-widest text-[10px]"
-                          >
-                            <XCircle class="mr-1 h-3 w-3" /> Cancel
-                          </Button>
-                        </div>
+                        <Button 
+                          onclick={() => handleUpdateStatus(activity.id, 'cancelled')}
+                          variant="outline" 
+                          class="flex-1 h-11 bg-[#16171E] border-red-500/30 text-red-500 hover:bg-red-500/10 hover:text-red-400 font-bold uppercase tracking-widest text-[11px] rounded-md"
+                        >
+                          <XCircle class="mr-1.5 h-3.5 w-3.5" /> CANCEL
+                        </Button>
                       </div>
                     </CyberCard>
                   {:else}
                     <!-- Non-active Card simple styled -->
-                    <CyberCard class="p-4 border-border/40 bg-card/10 opacity-75">
-                      <h3 class="text-sm font-bold truncate {isPast ? 'text-muted-foreground/60 line-through' : 'text-white/80'}">
-                        {activity.title}
-                      </h3>
-                      {#if activity.location}
-                        <p class="text-[10px] text-muted-foreground truncate mt-1 flex items-center gap-0.5 font-mono">
-                          <MapPin class="w-3.5 h-3.5 shrink-0 text-muted-foreground/50" /> {activity.location}
-                        </p>
-                      {/if}
+                    <CyberCard class="p-4 border-border/40 bg-[#16171E] opacity-75 rounded-[12px] h-full flex flex-col justify-center">
+                      <div class="flex items-start justify-between gap-4">
+                        <div class="flex flex-col gap-1.5">
+                          <h3 class="text-[15px] font-bold leading-snug {isPast ? 'text-muted-foreground/60 line-through' : 'text-white'}">
+                            {activity.title}
+                          </h3>
+                          {#if activity.location}
+                            <p class="text-[11px] text-muted-foreground/70 truncate font-mono">
+                              {activity.location}
+                            </p>
+                          {/if}
+                        </div>
+                        
+                        <div class="shrink-0 mt-0.5">
+                          {#if !isPast}
+                            <span class="text-[10px] text-yellow-500/80 font-bold tracking-widest bg-yellow-500/10 border border-yellow-500/30 px-2 py-1 rounded-sm font-mono">
+                              {formatTime(activity.time)}
+                            </span>
+                          {:else}
+                            <span class="text-[10px] text-muted-foreground/50 font-bold tracking-widest bg-muted-foreground/5 border border-muted-foreground/20 px-2 py-1 rounded-sm font-mono">
+                              {formatTime(activity.time)}
+                            </span>
+                          {/if}
+                        </div>
+                      </div>
                     </CyberCard>
                   {/if}
                 </div>

@@ -181,7 +181,7 @@
           </li>
           <li class="flex gap-3">
             <span class="text-primary font-bold">02</span>
-            <span>Segments must map chronologically matching your expedition timeline.</span>
+            <span>Activities must map chronologically matching your expedition timeline.</span>
           </li>
           <li class="flex gap-3">
             <span class="text-primary font-bold">03</span>

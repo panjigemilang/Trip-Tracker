@@ -6,7 +6,18 @@
 	import ReloadPrompt from '$lib/components/molecules/ReloadPrompt.svelte';
 	import { authStore } from '$lib/stores/auth.svelte';
 	import { page } from '$app/stores';
-	import { goto } from '$app/navigation';
+	import { goto, onNavigate } from '$app/navigation';
+
+	onNavigate((navigation) => {
+		if (!document.startViewTransition) return;
+
+		return new Promise((resolve) => {
+			document.startViewTransition(async () => {
+				resolve();
+				await navigation.complete;
+			});
+		});
+	});
 
 	let { children } = $props();
 

@@ -68,6 +68,16 @@
     return trip.journey.activities.filter((act: any) => act.status === 'completed').length;
   }
 
+  function getSkippedCheckpoints(trip: any) {
+    if (!trip.journey || !trip.journey.activities) return 0;
+    return trip.journey.activities.filter((act: any) => act.status === 'skipped').length;
+  }
+
+  function getMissedCheckpoints(trip: any) {
+    if (!trip.journey || !trip.journey.activities) return 0;
+    return trip.journey.activities.filter((act: any) => act.status === 'missed').length;
+  }
+
   function getMediaUrl(path: string) {
     if (!path) return '';
     if (path.startsWith('http')) return path;
@@ -90,44 +100,20 @@
 
 <div class="flex flex-col gap-6 md:gap-8 pb-10 max-w-6xl mx-auto font-sans">
   <!-- Mobile Header -->
-  <header class="md:hidden pt-4 pb-2 border-b border-border/50">
-    <div class="flex items-center justify-between">
+  <header class="md:hidden pt-4 pb-2">
+    <div class="flex items-start justify-between">
       <div>
-        <h1 class="text-3xl font-bold tracking-widest text-white">History Log</h1>
+        <h1 class="text-[28px] font-bold tracking-widest text-white">History Log</h1>
         <p class="text-sm text-muted-foreground">Past and expired journeys.</p>
       </div>
       {#if histories.length > 0}
         <button 
           onclick={handleClearAll}
-          class="flex items-center gap-1 text-xs text-red-500 uppercase tracking-widest font-semibold bg-red-500/10 px-3 py-1.5 rounded-md border border-red-500/30"
+          class="flex items-center gap-1 text-[10px] text-primary uppercase tracking-widest font-semibold mt-2"
         >
-          <Trash2 class="h-3 w-3" /> Clear All
+          <Trash2 class="h-3.5 w-3.5" /> CLEAR ALL
         </button>
       {/if}
-    </div>
-    
-    <div class="flex gap-2 mt-4 overflow-x-auto pb-2">
-      <Button 
-        onclick={() => currentFilter = 'ALL'} 
-        size="sm"
-        class={currentFilter === 'ALL' ? 'bg-primary text-primary-foreground hover:bg-primary/80' : 'border-border text-muted-foreground hover:text-white bg-transparent'}
-      >
-        ALL
-      </Button>
-      <Button 
-        onclick={() => currentFilter = 'COMPLETED'} 
-        size="sm"
-        class={currentFilter === 'COMPLETED' ? 'bg-primary text-primary-foreground hover:bg-primary/80' : 'border-border text-muted-foreground hover:text-white bg-transparent'}
-      >
-        COMPLETED
-      </Button>
-      <Button 
-        onclick={() => currentFilter = 'FAILED'} 
-        size="sm"
-        class={currentFilter === 'FAILED' ? 'bg-primary text-primary-foreground hover:bg-primary/80' : 'border-border text-muted-foreground hover:text-white bg-transparent'}
-      >
-        FAILED
-      </Button>
     </div>
   </header>
 
@@ -184,45 +170,75 @@
     <!-- Mobile List -->
     <div class="md:hidden flex flex-col gap-6">
       {#each filteredHistories as trip}
-        <CyberCard class="p-5 border-secondary/30 bg-linear-to-b from-secondary/5 to-transparent relative overflow-hidden">
-          <div class="absolute top-0 right-0 p-4">
-            <StatusBadge status={trip.status} />
-          </div>
-          <h3 class="text-xl font-bold tracking-wider text-white mb-1">{trip.title}</h3>
-          <p class="text-xs text-secondary font-medium tracking-wide mb-6">
-            {#if trip.start_date}
-              {formatDate(trip.start_date)} {#if trip.end_date} - {formatDate(trip.end_date)}{/if}
+        {@const statusColor = trip.status === 'completed' ? 'secondary' : (trip.status === 'cancelled' ? 'muted' : 'primary')}
+        {@const statusBorderClass = trip.status === 'completed' ? 'border-secondary' : (trip.status === 'cancelled' ? 'border-muted-foreground/30' : 'border-primary')}
+        {@const statusShadowClass = trip.status === 'completed' ? 'shadow-[0_0_15px_rgba(0,230,184,0.1)]' : (trip.status === 'cancelled' ? 'shadow-none' : 'shadow-[0_0_15px_rgba(255,42,122,0.1)]')}
+        
+        <CyberCard class="p-5 {statusBorderClass} {statusShadowClass} bg-[#0B0C10] relative overflow-hidden" glowState={statusColor === 'muted' ? 'none' : statusColor}>
+          <div class="flex items-start justify-between mb-2">
+            <div>
+              <h3 class="text-xl font-bold tracking-wider text-white mb-1">{trip.title}</h3>
+              <p class="text-xs {trip.status === 'completed' ? 'text-secondary' : (trip.status === 'cancelled' ? 'text-muted-foreground' : 'text-primary')} font-medium tracking-wide">
+                {#if trip.start_date}
+                  {formatDate(trip.start_date)} {#if trip.end_date} - {formatDate(trip.end_date)}{/if}
+                {:else}
+                  No Dates Set
+                {/if}
+              </p>
+            </div>
+            
+            <!-- Custom Badges based on status -->
+            {#if trip.status === 'completed'}
+              <span class="text-[9px] border border-secondary text-secondary px-2 py-0.5 uppercase tracking-widest font-bold rounded-sm bg-secondary/5">COMPLETED</span>
+            {:else if trip.status === 'cancelled'}
+              <span class="text-[9px] border border-red-500/50 text-red-500 px-2 py-0.5 uppercase tracking-widest font-bold rounded-sm bg-red-500/5">CANCELLED</span>
             {:else}
-              No Dates Set
+              <span class="text-[9px] bg-[#2A0818] text-primary px-2 py-0.5 uppercase tracking-widest font-bold rounded-sm">EXPIRED</span>
             {/if}
-          </p>
-          
-          <div class="grid grid-cols-2 gap-3 mb-6 font-mono">
-            <div class="bg-background rounded-lg p-3 flex flex-col items-center justify-center border border-border">
-              <div class="h-6 w-6 rounded-full bg-secondary/20 flex items-center justify-center mb-1">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-neon-cyan)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-              </div>
-              <div class="text-xl font-bold">{getCompletedCheckpoints(trip)}</div>
-              <div class="text-[8px] text-muted-foreground uppercase tracking-widest">Completed</div>
-            </div>
-            <div class="bg-background rounded-lg p-3 flex flex-col items-center justify-center border border-border">
-              <div class="h-6 w-6 rounded-full bg-muted flex items-center justify-center mb-1">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted-foreground"><polyline points="9 18 15 12 9 6"/></svg>
-              </div>
-              <div class="text-xl font-bold">{trip.activities?.length || 0}</div>
-              <div class="text-[8px] text-muted-foreground uppercase tracking-widest">Total</div>
-            </div>
           </div>
+          
+          {#if trip.status === 'cancelled'}
+            <!-- Cancelled State Content -->
+            <div class="bg-[#11131A] rounded border border-border flex flex-col items-center justify-center p-6 my-5 font-mono">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted-foreground mb-3"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg>
+              <div class="text-[9px] text-muted-foreground uppercase tracking-widest text-center">Trip cancelled before commencement</div>
+            </div>
+          {:else}
+            <!-- Completed / Expired Stats -->
+            <div class="grid grid-cols-2 gap-3 my-5 font-mono">
+              <!-- Completed Block -->
+              <div class="bg-[#11131A] rounded p-3 flex flex-col items-center justify-center border {trip.status === 'completed' ? 'border-border' : 'border-border'}">
+                <div class="h-6 w-6 rounded-full flex items-center justify-center mb-1 {trip.status === 'completed' ? 'bg-secondary/20 text-secondary' : 'bg-muted text-muted-foreground'}">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <div class="text-xl font-bold text-white">{getCompletedCheckpoints(trip)}</div>
+                <div class="text-[8px] text-muted-foreground uppercase tracking-widest">Completed</div>
+              </div>
+              
+              <!-- Skipped / Missed Block -->
+              <div class="bg-[#11131A] rounded p-3 flex flex-col items-center justify-center border {trip.status === 'completed' ? 'border-border' : 'border-border'}">
+                <div class="h-6 w-6 rounded-full flex items-center justify-center mb-1 {trip.status === 'completed' ? 'bg-muted text-muted-foreground' : 'bg-primary/20 text-primary'}">
+                  {#if trip.status === 'completed'}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+                  {:else}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  {/if}
+                </div>
+                <div class="text-xl font-bold text-white">{trip.status === 'completed' ? getSkippedCheckpoints(trip) : getMissedCheckpoints(trip)}</div>
+                <div class="text-[8px] text-muted-foreground uppercase tracking-widest">{trip.status === 'completed' ? 'Skipped' : 'Missed'}</div>
+              </div>
+            </div>
+          {/if}
           
           <div class="flex items-center justify-between border-t border-border/50 pt-4">
             <button 
               onclick={() => handleDelete(trip.id)} 
-              class="flex items-center gap-1 text-xs text-red-500 hover:text-red-400 transition-colors uppercase tracking-widest font-mono font-semibold"
+              class="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-white transition-colors uppercase tracking-widest font-mono"
             >
-              <Trash2 class="h-3 w-3" /> Delete
+              <Trash2 class="h-3.5 w-3.5" /> Delete
             </button>
-            <a href="/trips/{trip.slug}/{trip.id}" class="text-xs text-secondary font-bold tracking-widest uppercase flex items-center gap-1">
-              View Details <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            <a href="/trips/{trip.slug}/{trip.id}" class="text-xs {trip.status === 'completed' ? 'text-secondary' : (trip.status === 'cancelled' ? 'text-white' : 'text-primary')} font-bold tracking-widest uppercase flex items-center gap-1 font-mono">
+              VIEW DETAILS <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
             </a>
           </div>
         </CyberCard>
@@ -231,6 +247,12 @@
           <p class="text-muted-foreground text-xs font-mono uppercase tracking-widest">No matching history records.</p>
         </div>
       {/each}
+
+      {#if filteredHistories.length > 0}
+        <div class="text-center mt-4">
+          <span class="text-[10px] text-muted-foreground/60 uppercase tracking-widest font-mono">END OF HISTORY LOG</span>
+        </div>
+      {/if}
     </div>
 
     <!-- Desktop List -->

@@ -13,7 +13,7 @@
 <nav class="md:hidden fixed bottom-0 left-0 z-50 flex h-16 w-full items-center justify-around border-t border-border bg-background pb-safe">
   {#each navItems as item}
     {@const isActive = $page.url.pathname.startsWith(item.href)}
-    <a href={item.href} class="relative flex flex-col items-center justify-center gap-1 w-full h-full">
+    <a href={item.href} class="relative flex flex-col items-center justify-center gap-1 w-full h-full transition-all duration-200 active:scale-[0.85]">
       {#if isActive}
         <!-- Active indicator glow -->
         <div class="absolute top-0 w-8 h-0.5 bg-primary shadow-[0_0_10px_rgba(255,42,122,1)]"></div>

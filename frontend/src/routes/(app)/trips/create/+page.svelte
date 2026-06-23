@@ -39,7 +39,7 @@
       
       const tripId = res.data.id;
       const slug = res.data.slug || 'trip';
-      // Direct deep link to trip details so they can add segments/activities immediately
+      // Direct deep link to trip details so they can add activities immediately
       goto(`/trips/${slug}/${tripId}`);
     } catch (err: any) {
       console.error(err);
