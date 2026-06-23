@@ -3,6 +3,7 @@
   import NeonText from '$lib/components/shared/NeonText.svelte';
   import CyberCard from '$lib/components/shared/CyberCard.svelte';
   import { formatDate } from '$lib/utils/dateFormatter';
+  import { notificationsStore } from '$lib/stores/notifications.svelte';
 
   let { trip, getTripImage, progressPercentage, totalActivities } = $props<{ 
     trip: any, 
@@ -22,8 +23,15 @@
       <NeonText class="text-lg font-bold tracking-widest uppercase truncate max-w-45">{trip.title}</NeonText>
     </div>
     <div class="flex items-center gap-3">
-      <button aria-label="Notifications" class="text-white hover:text-white/80 transition-colors bg-black/20 p-2 rounded-full backdrop-blur-md">
+      <button 
+        aria-label="Notifications" 
+        class="text-white hover:text-white/80 transition-colors bg-black/20 p-2 rounded-full backdrop-blur-md relative cursor-pointer"
+        onclick={() => notificationsStore.toggleMobileOverlay()}
+      >
         <Bell class="size-4.5" />
+        {#if notificationsStore.unreadCount > 0}
+          <div class="absolute top-1 right-1.5 h-2 w-2 rounded-full bg-secondary shadow-[0_0_8px_rgba(0,230,184,0.8)]"></div>
+        {/if}
       </button>
     </div>
   </div>

@@ -5,10 +5,11 @@
   import { api } from '$lib/services/api/client';
   import { Button } from '$lib/components/ui/button';
   import { onMount } from 'svelte';
-  import { Plus } from 'lucide-svelte';
+  import { Plus, Bell } from 'lucide-svelte';
   import { getDisplayStatus } from '$lib/utils/tripStatus';
   import { fade, fly } from 'svelte/transition';
   import { flip } from 'svelte/animate';
+  import { notificationsStore } from '$lib/stores/notifications.svelte';
 
   let trips = $state<any[]>([]);
   let isLoading = $state(true);
@@ -52,11 +53,27 @@
 </script>
 
 <div class="flex flex-col gap-8 pb-10 max-w-6xl mx-auto w-full">
-  <header class="md:hidden pt-4 flex items-center justify-between">
-    <div>
-      <NeonText class="text-3xl tracking-widest block mb-1">My Trips</NeonText>
-      <p class="text-sm text-muted-foreground">Manage your upcoming trips.</p>
-    </div>
+  <header class="md:hidden pt-4 pb-2 px-2 flex items-center justify-between">
+    <!-- Logo -->
+    <a href="/" class="flex items-center">
+      <div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary border border-primary/20 shadow-[0_0_10px_rgba(255,42,122,0.2)]">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-navigation"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+      </div>
+    </a>
+    
+    <!-- Title -->
+    <NeonText class="text-xl font-bold tracking-widest text-primary">Trip Tracker</NeonText>
+
+    <!-- Bell Icon -->
+    <button 
+      class="text-muted-foreground hover:text-white transition-colors cursor-pointer relative p-2"
+      onclick={() => notificationsStore.toggleMobileOverlay()}
+    >
+      <Bell class="h-6 w-6" />
+      {#if notificationsStore.unreadCount > 0}
+        <div class="absolute top-1.5 right-1.5 h-2.5 w-2.5 rounded-full bg-secondary shadow-[0_0_8px_rgba(0,230,184,0.8)]"></div>
+      {/if}
+    </button>
   </header>
 
   <!-- Desktop Header -->

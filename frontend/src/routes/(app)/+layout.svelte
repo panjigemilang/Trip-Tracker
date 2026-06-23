@@ -3,8 +3,11 @@
 	import SideNav from '$lib/components/layout/desktop/SideNav.svelte';
 	import BottomNav from '$lib/components/layout/mobile/BottomNav.svelte';
 	import FAB from '$lib/components/layout/mobile/FAB.svelte';
+	import MobileNotificationOverlay from '$lib/components/layout/mobile/MobileNotificationOverlay.svelte';
 	import { authStore } from '$lib/stores/auth.svelte';
+	import { notificationsStore } from '$lib/stores/notifications.svelte';
 	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
 
 	let { children } = $props();
 
@@ -12,6 +15,10 @@
 		if (!authStore.loading && !authStore.isAuthenticated) {
 			goto('/login');
 		}
+	});
+
+	onMount(() => {
+		notificationsStore.init();
 	});
 </script>
 
@@ -30,6 +37,7 @@
 
 		<BottomNav />
 		<FAB />
+		<MobileNotificationOverlay />
 	</div>
 {:else}
 	<div class="min-h-screen bg-background flex items-center justify-center">

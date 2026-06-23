@@ -2,7 +2,8 @@
   import { page } from '$app/stores';
   import { Bell, LogOut } from 'lucide-svelte';
   import { authStore } from '$lib/stores/auth.svelte';
-
+  import { notificationsStore } from '$lib/stores/notifications.svelte';
+  import NotificationList from '$lib/components/shared/NotificationList.svelte';
   const navItems = [
     { name: 'TRIPS', href: '/trips' },
     { name: 'TRACK', href: '/track' },
@@ -13,13 +14,25 @@
   let isDropdownOpen = $state(false);
   let dropdownEl = $state<HTMLDivElement | null>(null);
 
+  let isNotifOpen = $state(false);
+  let notifDropdownEl = $state<HTMLDivElement | null>(null);
+
   function toggleDropdown() {
     isDropdownOpen = !isDropdownOpen;
+    if (isDropdownOpen) isNotifOpen = false;
+  }
+
+  function toggleNotifDropdown() {
+    isNotifOpen = !isNotifOpen;
+    if (isNotifOpen) isDropdownOpen = false;
   }
 
   function handleOutsideClick(e: MouseEvent) {
     if (isDropdownOpen && dropdownEl && !dropdownEl.contains(e.target as Node)) {
       isDropdownOpen = false;
+    }
+    if (isNotifOpen && notifDropdownEl && !notifDropdownEl.contains(e.target as Node)) {
+      isNotifOpen = false;
     }
   }
 
@@ -55,11 +68,27 @@
   </nav>
 
   <!-- Profile & Notifs -->
-  <div class="flex items-center gap-4 relative" bind:this={dropdownEl}>
-    <button class="text-muted-foreground hover:text-primary cursor-pointer">
-      <Bell class="h-5 w-5" />
-    </button>
-    <button 
+  <div class="flex items-center gap-4 relative">
+    <div bind:this={notifDropdownEl}>
+      <button 
+        class="text-muted-foreground hover:text-primary cursor-pointer relative"
+        onclick={toggleNotifDropdown}
+      >
+        <Bell class="h-5 w-5" />
+        {#if notificationsStore.unreadCount > 0}
+          <div class="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-secondary shadow-[0_0_8px_rgba(0,230,184,0.8)]"></div>
+        {/if}
+      </button>
+
+      {#if isNotifOpen}
+        <div class="absolute right-12 top-12 z-50 w-80 h-96 p-0 rounded-lg border border-secondary/40 bg-[#0B0C10] shadow-[0_0_20px_rgba(0,230,184,0.15)] animate-in fade-in slide-in-from-top-2 duration-100 overflow-hidden flex flex-col">
+          <NotificationList />
+        </div>
+      {/if}
+    </div>
+
+    <div bind:this={dropdownEl} class="relative">
+      <button 
       type="button" 
       onclick={toggleDropdown}
       class="h-8 w-8 overflow-hidden rounded-full border border-border bg-muted cursor-pointer hover:border-primary focus:outline-none transition-colors"
@@ -88,5 +117,6 @@
         </button>
       </div>
     {/if}
+    </div>
   </div>
 </header>
