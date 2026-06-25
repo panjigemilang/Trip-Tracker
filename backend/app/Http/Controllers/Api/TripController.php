@@ -37,12 +37,30 @@ class TripController extends Controller
     public function store(StoreTripRequest $request): TripResource
     {
         $trip = DB::transaction(function () use ($request) {
-            $trip = $request->user()->trips()->create(\Illuminate\Support\Arr::except($request->validated(), ['activities', 'images']));
+            // The `trips.status` column defaults to 'draft', but the
+            // documented contract's status enum is only
+            // planned|active|completed|cancelled — set it explicitly so new
+            // trips land in a status the client actually understands.
+            $trip = $request->user()->trips()->create(
+                array_merge(
+                    \Illuminate\Support\Arr::except($request->validated(), ['activities', 'images']),
+                    ['status' => 'planned'],
+                ),
+            );
 
             if ($request->has('activities')) {
+                // `sort_order` is NOT NULL with no DB default, and it's only
+                // `nullable` in validation — without this, creating a trip
+                // with activities throws a not-null constraint violation.
+                $sortOrder = 0;
                 foreach ($request->input('activities') as $activityData) {
                     $images = $activityData['images'] ?? [];
                     unset($activityData['images']);
+                    if (!isset($activityData['sort_order'])) {
+                        $activityData['sort_order'] = ++$sortOrder;
+                    } else {
+                        $sortOrder = (int) $activityData['sort_order'];
+                    }
 
                     $activity = $trip->activities()->create($activityData);
 
@@ -78,7 +96,7 @@ class TripController extends Controller
     {
         $trip->update($request->validated());
 
-        return new TripResource($trip->fresh('activities'));
+        return new TripResource($trip->fresh(['activities.images', 'journey']));
     }
 
     public function destroy(Trip $trip): \Illuminate\Http\JsonResponse

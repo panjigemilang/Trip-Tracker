@@ -51,9 +51,17 @@ class TripImportController extends Controller
 
             DB::commit();
 
+            $trip->load('activities');
+
             return response()->json([
                 'message' => 'Activities imported successfully',
-                'data' => $trip->load('activities')
+                // The client reads this count directly rather than inferring
+                // it from `data` (which is the Trip object, not a list).
+                // Uses the import's own row counter, not the trip's total
+                // activity count, so re-importing into a trip that already
+                // has activities doesn't overcount.
+                'imported' => $import->importedCount,
+                'data' => $trip,
             ]);
         } catch (\Exception $e) {
             DB::rollBack();

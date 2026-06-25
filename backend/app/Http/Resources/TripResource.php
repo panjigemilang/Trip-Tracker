@@ -23,8 +23,14 @@ class TripResource extends JsonResource
             'created_at' => $this->created_at->toIso8601String(),
             'updated_at' => $this->updated_at->toIso8601String(),
             'first_image_url' => $this->first_image_url,
-            'activities' => $this->whenLoaded('activities'),
-            'journey_id' => $this->journey?->id,
+            'activities' => ActivityResource::collection($this->whenLoaded('activities')),
+            // The client looks for a nested `journey: {id, status}` object
+            // (not a bare `journey_id`) to know whether a trip has an active
+            // journey and what its status is.
+            'journey' => $this->when($this->relationLoaded('journey') && $this->journey, fn () => [
+                'id' => $this->journey->id,
+                'status' => $this->journey->status,
+            ]),
         ];
     }
 }

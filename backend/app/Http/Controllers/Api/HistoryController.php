@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\TripResource;
 use Illuminate\Http\Request;
 
 class HistoryController extends Controller
@@ -11,12 +12,15 @@ class HistoryController extends Controller
     {
         $histories = $request->user()->trips()
             ->whereIn('status', ['completed', 'cancelled'])
-            ->with(['activities.images', 'journey.activities'])
+            // Journey's relation method is `journeyActivities()`, not
+            // `activities()` — the old `journey.activities` path here threw
+            // RelationNotFoundException on every call.
+            ->with(['activities.images', 'journey.journeyActivities.activity'])
             ->orderBy('start_date', 'desc')
             ->get();
 
         return response()->json([
-            'data' => $histories
+            'data' => TripResource::collection($histories),
         ]);
     }
 
@@ -24,11 +28,11 @@ class HistoryController extends Controller
     {
         $trip = $request->user()->trips()
             ->whereIn('status', ['completed', 'cancelled'])
-            ->with(['activities.images', 'journey.activities.activity'])
+            ->with(['activities.images', 'journey.journeyActivities.activity'])
             ->findOrFail($id);
 
         return response()->json([
-            'data' => $trip
+            'data' => new TripResource($trip),
         ]);
     }
 

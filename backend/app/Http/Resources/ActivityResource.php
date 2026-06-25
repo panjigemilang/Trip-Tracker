@@ -14,7 +14,10 @@ class ActivityResource extends JsonResource
             'id' => $this->id,
             'trip_id' => $this->trip_id,
             'date' => $this->date ? ($this->date instanceof \DateTimeInterface ? $this->date->format('Y-m-d') : \Carbon\Carbon::parse($this->date)->format('Y-m-d')) : null,
-            'time' => $this->time,
+            // The `time` column is a SQL TIME type and comes back as "H:i:s"
+            // (e.g. "14:30:00"). The client (and this API's own validation,
+            // `date_format:H:i`) works in "H:i", so format it consistently here.
+            'time' => $this->time ? \Carbon\Carbon::parse($this->time)->format('H:i') : null,
             'title' => $this->title,
             'location' => $this->location,
             'notes' => $this->notes,

@@ -15,6 +15,7 @@ class TripImport implements ToCollection, WithHeadingRow
 {
     protected $trip;
     public $errors = [];
+    public $importedCount = 0;
 
     public function __construct(Trip $trip)
     {
@@ -65,6 +66,7 @@ class TripImport implements ToCollection, WithHeadingRow
                 'notes' => $row['notes'],
                 'sort_order' => $sortOrder,
             ]);
+            $this->importedCount++;
         }
     }
 }

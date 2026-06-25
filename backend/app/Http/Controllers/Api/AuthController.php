@@ -57,15 +57,27 @@ class AuthController extends Controller
         ]);
     }
 
-    public function googleRedirect()
+    public function googleRedirect(Request $request)
     {
+        // `client=mobile` round-trips through Google's own `state` param
+        // (unrelated to Socialite's CSRF state, which `stateless()` skips)
+        // so the callback below knows whether to hand the token back to the
+        // mobile app's custom URL scheme or the web app's FRONTEND_URL.
+        $client = $request->query('client', 'web');
+
         return response()->json([
-            'url' => \Laravel\Socialite\Facades\Socialite::driver('google')->stateless()->redirect()->getTargetUrl()
+            'url' => \Laravel\Socialite\Facades\Socialite::driver('google')
+                ->stateless()
+                ->with(['state' => $client])
+                ->redirect()
+                ->getTargetUrl()
         ]);
     }
 
-    public function googleCallback()
+    public function googleCallback(Request $request)
     {
+        $client = $request->query('state', 'web');
+
         try {
             $driver = \Laravel\Socialite\Facades\Socialite::driver('google')->stateless();
             if (config('app.env') === 'local' || config('app.env') === 'testing') {
@@ -76,6 +88,9 @@ class AuthController extends Controller
             \Illuminate\Support\Facades\Log::error('Google OAuth callback error: ' . $e->getMessage(), [
                 'exception' => $e
             ]);
+            if ($client === 'mobile') {
+                return redirect('triptracker://auth/google/callback?error=Google authentication failed.');
+            }
             $frontendUrl = env('FRONTEND_URL', 'http://localhost:5173');
             return redirect($frontendUrl . '/login?error=Google authentication failed.');
         }
@@ -101,6 +116,11 @@ class AuthController extends Controller
         }
 
         $token = $user->createToken('auth_token')->plainTextToken;
+
+        if ($client === 'mobile') {
+            return redirect('triptracker://auth/google/callback?token=' . $token);
+        }
+
         $frontendUrl = env('FRONTEND_URL', 'http://localhost:5173');
 
         return redirect($frontendUrl . '/auth/google/callback?token=' . $token);

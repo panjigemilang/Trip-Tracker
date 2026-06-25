@@ -9,6 +9,7 @@ use App\Models\Activity;
 use App\Enums\ActivityStatus;
 use App\Enums\JourneyStatus;
 use App\Http\Requests\UpdateActivityStatusRequest;
+use App\Http\Resources\JourneyResource;
 use App\Services\JourneyEngine;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -49,7 +50,7 @@ class JourneyController extends Controller
         $trip->update(['status' => 'active']);
 
         return response()->json([
-            'data' => $journey->load('journeyActivities', 'currentActivity'),
+            'data' => new JourneyResource($journey->load('journeyActivities.activity', 'currentActivity')),
             'message' => 'Journey started successfully.'
         ], 201);
     }
@@ -65,7 +66,7 @@ class JourneyController extends Controller
         }
 
         return response()->json([
-            'data' => $journey->load('journeyActivities', 'currentActivity', 'trip.activities')
+            'data' => new JourneyResource($journey->load('journeyActivities.activity', 'currentActivity', 'trip.activities')),
         ]);
     }
 
@@ -87,7 +88,7 @@ class JourneyController extends Controller
         $this->engine->updateActivityStatus($journey, $activity->id, $status);
 
         return response()->json([
-            'data' => $journey->fresh('journeyActivities', 'currentActivity'),
+            'data' => new JourneyResource($journey->fresh(['journeyActivities.activity', 'currentActivity'])),
             'message' => 'Activity status updated successfully.'
         ]);
     }
